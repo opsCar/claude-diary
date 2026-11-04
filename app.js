@@ -286,55 +286,99 @@
     return Math.min(Math.max(1.0, qty * 0.005), Math.max(1.0, gross * 0.005));
   }
 
-  let jsonpSeq = 0;
-  function jsonp(baseUrl) {
-    return new Promise((resolve, reject) => {
-      const cb = `__em_cb_${Date.now()}_${++jsonpSeq}`;
-      const s = document.createElement("script");
-      const timer = setTimeout(() => {
-        cleanup();
-        reject(new Error("timeout"));
-      }, 60000);
-      function cleanup() {
-        clearTimeout(timer);
-        delete window[cb];
-        s.remove();
-      }
-      window[cb] = (data) => {
-        cleanup();
-        resolve(data);
-      };
-      s.onerror = () => {
-        cleanup();
-        reject(new Error("script error"));
-      };
-      s.src = `${baseUrl}&cb=${cb}`;
-      document.head.appendChild(s);
-    });
+  function secidToGtimgCodes(secid) {
+    const [mkt, sym] = String(secid).split(".");
+    if (mkt === "1") return { isUs: false, codes: [`sh${sym}`] };
+    if (mkt === "0") return { isUs: false, codes: [`sz${sym}`] };
+    return { isUs: true, codes: [`us${sym}.OQ`, `us${sym}.AM`, `us${sym}.N`] };
+  }
+
+  function etHmToBjHm(hmStr) {
+    const h = Number(hmStr.slice(0, 2));
+    const m = hmStr.slice(2, 4);
+    // 11月美东为冬令时 EST (UTC-5)，北京时间 UTC+8，相差 +13 小时
+    const bjH = (h + 13) % 24;
+    return { hm: `${String(bjH).padStart(2, "0")}:${m}`, crossedMidnight: h + 13 >= 24 };
+  }
+
+  function addOneDay(ymd) {
+    const d = new Date(`${ymd}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().slice(0, 10);
   }
 
   async function fetchTrendsForSecid(secid) {
-    const url = `https://push2.eastmoney.com/api/qt/stock/trends2/get?secid=${encodeURIComponent(secid)}&fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&iscr=0`;
-    const j = await jsonp(url);
-    const d = j?.data;
-    if (!d || !Array.isArray(d.trends)) return null;
-    const bars = d.trends.map((line) => {
-      const p = String(line).split(",");
-      return {
-        time: p[0] || "",
-        open: Number(p[1]),
-        close: Number(p[2]),
-        high: Number(p[3]),
-        low: Number(p[4]),
-      };
-    }).filter((b) => b.time && Number.isFinite(b.close) && b.close > 0);
-    return {
-      secid,
-      code: d.code,
-      name: d.name,
-      preClose: Number(d.preClose || d.preSettlement || (bars[0]?.open ?? 0)),
-      bars,
-    };
+    const { isUs, codes } = secidToGtimgCodes(secid);
+    for (const code of codes) {
+      try {
+        const endpoint = isUs
+          ? `https://web.ifzq.gtimg.cn/appstock/app/UsMinute/query?code=${encodeURIComponent(code)}`
+          : `https://web.ifzq.gtimg.cn/appstock/app/minute/query?code=${encodeURIComponent(code)}`;
+        const r = await fetch(endpoint, { cache: "no-store" });
+        if (!r.ok) continue;
+        const j = await r.json();
+        const node = j?.data?.[code];
+        const rawList = node?.data?.data;
+        if (!Array.isArray(rawList) || rawList.length < 2) continue;
+        const rawDate = String(node?.data?.date || "");
+        const sessionDate =
+          rawDate.length === 8
+            ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`
+            : new Date().toISOString().slice(0, 10);
+        const nextDate = addOneDay(sessionDate);
+        const qt = node?.qt?.[code] || [];
+        const dayOpen = Number(qt[5]) || 0;
+        const dayHigh = Number(qt[33]) || 0;
+        const dayLow = Number(qt[34]) || 0;
+        const preClose = Number(qt[4]) || dayOpen;
+
+        const bars = [];
+        for (let i = 0; i < rawList.length; i++) {
+          const parts = String(rawList[i]).trim().split(/\s+/);
+          if (parts.length < 2) continue;
+          const hmRaw = parts[0];
+          const close = Number(parts[1]);
+          if (!Number.isFinite(close) || close <= 0) continue;
+          let barDate = sessionDate;
+          let hm = `${hmRaw.slice(0, 2)}:${hmRaw.slice(2, 4)}`;
+          if (isUs) {
+            const conv = etHmToBjHm(hmRaw);
+            hm = conv.hm;
+            if (conv.crossedMidnight) barDate = nextDate;
+          }
+          const open = i === 0 && dayOpen > 0 ? dayOpen : (bars[bars.length - 1]?.close ?? close);
+          bars.push({
+            time: `${barDate} ${hm}`,
+            open,
+            close,
+            high: Math.max(open, close),
+            low: Math.min(open, close),
+          });
+        }
+        if (!bars.length) continue;
+        // 将日内真实最低/最高价校准到极值分钟上，确保盘中瞬间插针触发限价单不漏算
+        if (dayLow > 0) {
+          let minBar = bars[0];
+          for (const b of bars) if (b.low < minBar.low) minBar = b;
+          if (dayLow < minBar.low) minBar.low = dayLow;
+        }
+        if (dayHigh > 0) {
+          let maxBar = bars[0];
+          for (const b of bars) if (b.high > maxBar.high) maxBar = b;
+          if (dayHigh > maxBar.high) maxBar.high = dayHigh;
+        }
+        return {
+          secid,
+          code,
+          name: qt[1] || secid,
+          preClose,
+          bars,
+        };
+      } catch {
+        // try next code
+      }
+    }
+    return null;
   }
 
   function simulateMarketIntraday(mSnap, trendsMap) {
@@ -711,8 +755,8 @@
   build();
   initSeedSimulation();
   renderLiveTradingInBook();
+  refreshLiveTrading(false);
   if (!navigator.webdriver) {
-    refreshLiveTrading(false);
     setInterval(() => refreshLiveTrading(true), 15000);
   }
   if (document.fonts) document.fonts.ready.then(fit);
