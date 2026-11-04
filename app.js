@@ -710,30 +710,27 @@
 
   async function updateQuotesFromSnap() {
     if (!tradingSnap) return;
-    for (const mkt of ["CN", "US"]) {
-      const mSnap = tradingSnap[mkt];
-      if (!mSnap) continue;
-      const benchSecid = mkt === "CN" ? "1.000300" : "105.QQQ";
-      const secids = [
-        ...new Set([
-          benchSecid,
-          ...(mSnap.positions || []).map((p) => p.secid),
-          ...(mSnap.pendingOrders || []).map((o) => o.secid),
-        ]),
-      ];
-      const trendsMap = seedTrendsMap(mSnap);
-      // 串行逐个拉取分时，避免并发触发东财网关连接重置
-      for (const s of secids) {
-        try {
-          const item = await fetchTrendsForSecid(s);
+    await Promise.all(
+      ["CN", "US"].map(async (mkt) => {
+        const mSnap = tradingSnap[mkt];
+        if (!mSnap) return;
+        const benchSecid = mkt === "CN" ? "1.000300" : "105.QQQ";
+        const secids = [
+          ...new Set([
+            benchSecid,
+            ...(mSnap.positions || []).map((p) => p.secid),
+            ...(mSnap.pendingOrders || []).map((o) => o.secid),
+          ]),
+        ];
+        const trendsMap = seedTrendsMap(mSnap);
+        const fetched = await Promise.all(secids.map((s) => fetchTrendsForSecid(s).catch(() => null)));
+        for (const item of fetched) {
           if (item && item.bars.length) trendsMap.set(item.secid, item);
-        } catch {
-          // keep seed fallback
         }
-      }
-      liveMarketState[mkt] = simulateMarketIntraday(mSnap, trendsMap);
-      renderLiveTradingInBook();
-    }
+        liveMarketState[mkt] = simulateMarketIntraday(mSnap, trendsMap);
+      }),
+    );
+    renderLiveTradingInBook();
   }
 
   async function refreshLiveTrading(fetchRemoteJson = false) {
