@@ -82,6 +82,7 @@ img, video { display: block; max-width: 100%; }
 .tabs a { display: block; width: 74px; height: 56px; border-radius: 10px 10px 0 0; text-align: center; line-height: 46px; font-family: var(--title); font-size: 24px; text-decoration: none; color: rgba(58, 46, 41, 0.85); box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.18); transition: transform 0.2s; }
 .tabs a[data-week="w1"] { background: #9cc7b4; }
 .tabs a[data-week="w2"] { background: #f2a873; }
+.tabs a[data-week="trade"] { background: #f0cf7b; }
 .tabs a[aria-current="true"] { transform: translateY(-8px); }
 
 /* ---------- pages ---------- */
@@ -234,6 +235,39 @@ img, video { display: block; max-width: 100%; }
 .dotgrid { display: grid; grid-template-columns: repeat(26, 1fr); gap: 4px; max-width: 470px; }
 .dotgrid i { aspect-ratio: 1; border-radius: 50%; background: var(--orange); }
 .chart svg { width: 100%; height: auto; overflow: visible; }
+
+/* ---------- live paper-trading pages (#trade) ---------- */
+.tr-page { display: flex; flex-direction: column; gap: 8px; }
+.tr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.tr-live-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; background: var(--cream); border: 2px solid rgba(90, 70, 55, 0.25); font-size: 13.5px; color: var(--soft); white-space: nowrap; }
+.tr-live-pill.live { border-color: rgba(31, 122, 71, 0.45); color: #1f7a47; background: #eef9f2; }
+.tr-live-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.tr-kpis { display: grid; grid-template-columns: 1.45fr 1fr 1fr; gap: 8px; }
+.tr-kpi { background: rgba(255, 253, 248, 0.9); border: 2px solid rgba(90, 70, 55, 0.22); border-radius: 10px; padding: 6px 10px; }
+.tr-kpi small { display: block; font-size: 13px; color: var(--soft); }
+.tr-kpi b { font-family: var(--pixel); font-size: 22px; font-weight: normal; color: var(--ink); }
+.tr-kpi.main b { font-size: 25px; color: var(--orange-deep); }
+.tr-ret { display: inline-block; margin-left: 6px; font-family: var(--pixel); font-size: 15px; padding: 1px 6px; border-radius: 6px; }
+.tr-ret.up, .tr-pnl.up { color: #c8372d; background: rgba(200, 55, 45, 0.12); }
+.tr-ret.down, .tr-pnl.down { color: #1f7a47; background: rgba(31, 122, 71, 0.12); }
+.tr-chart-card { background: rgba(255, 253, 248, 0.92); border: 2px solid rgba(90, 70, 55, 0.25); border-radius: 12px; padding: 8px 10px 6px; box-shadow: 0 4px 10px rgba(50, 30, 15, 0.08); }
+.tr-chart-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.tr-chart-title { font-size: 14.5px; color: var(--soft); font-weight: bold; }
+.tr-chart-tabs { display: flex; gap: 4px; }
+.tr-tab { border: 1.5px solid rgba(90, 70, 55, 0.3); background: transparent; color: var(--soft); border-radius: 6px; padding: 2px 8px; font-family: var(--hand); font-size: 13px; cursor: pointer; }
+.tr-tab.on { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.tr-chart-svg svg { width: 100%; height: auto; display: block; overflow: visible; }
+.tr-section-title { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: bold; margin-top: 2px; }
+.tr-list { display: flex; flex-direction: column; gap: 5px; }
+.tr-row { display: grid; grid-template-columns: 44px 1.2fr 1.1fr 0.9fr 0.9fr; gap: 6px; align-items: center; background: rgba(255, 253, 248, 0.88); border: 1.5px solid rgba(90, 70, 55, 0.2); border-radius: 8px; padding: 5px 8px; font-size: 14.5px; }
+.tr-row b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tr-tag { text-align: center; font-size: 12.5px; border-radius: 5px; padding: 1px 4px; font-family: var(--title); }
+.tr-tag.hold { background: rgba(232, 120, 47, 0.18); color: var(--orange-deep); }
+.tr-tag.pend { background: rgba(59, 125, 216, 0.16); color: #285496; }
+.tr-tag.trig { background: rgba(200, 55, 45, 0.16); color: var(--red); }
+.tr-price { font-family: var(--pixel); font-size: 14px; text-align: right; white-space: nowrap; }
+.tr-status, .tr-pnl { font-size: 13px; text-align: right; white-space: nowrap; border-radius: 5px; padding: 1px 5px; }
+.tr-empty { text-align: center; color: var(--soft); font-size: 15px; padding: 10px; background: rgba(255, 253, 248, 0.6); border-radius: 8px; border: 1.5 dashed rgba(90, 70, 55, 0.25); }
 
 @media (max-width: 899px) {
   .nav { display: none; }

@@ -174,6 +174,17 @@
   // ---------- input ----------
   book.addEventListener("click", (e) => {
     if (e.target.closest("a")) return;
+    const chartTab = e.target.closest("[data-chart-mode]");
+    if (chartTab) {
+      e.stopPropagation();
+      const pageEl = chartTab.closest("[data-live-market]");
+      const mkt = pageEl?.dataset.liveMarket;
+      if (mkt) {
+        chartModes[mkt] = chartTab.dataset.chartMode;
+        renderLiveTradingInBook();
+      }
+      return;
+    }
     if (e.target.closest(".bubbles.whiteout")) {
       e.target.closest(".bubbles").classList.toggle("peel");
       return;
@@ -250,7 +261,460 @@
     }, 150);
   });
 
+  // ---------- live paper-trading (zero AI tokens, real-time EastMoney quotes & trends) ----------
+  const chartModes = { CN: "intraday", US: "intraday" };
+  let tradingSnap = (() => {
+    try {
+      const el = document.getElementById("trading-seed");
+      return el ? JSON.parse(el.textContent) : null;
+    } catch {
+      return null;
+    }
+  })();
+  const liveMarketState = { CN: null, US: null };
+
+  function calcLiveFee(mkt, side, qty, price, isEtf) {
+    const gross = qty * price;
+    if (gross <= 0 || qty <= 0) return 0;
+    if (mkt === "CN") {
+      if (isEtf) return Math.max(0.2, gross * 0.00015);
+      const comm = Math.max(5, gross * 0.00025);
+      const transfer = gross * 0.00001;
+      const stamp = side === "SELL" ? gross * 0.0005 : 0;
+      return comm + transfer + stamp;
+    }
+    return Math.min(Math.max(1.0, qty * 0.005), Math.max(1.0, gross * 0.005));
+  }
+
+  let jsonpSeq = 0;
+  function jsonp(baseUrl) {
+    return new Promise((resolve, reject) => {
+      const cb = `__em_cb_${Date.now()}_${++jsonpSeq}`;
+      const s = document.createElement("script");
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error("timeout"));
+      }, 60000);
+      function cleanup() {
+        clearTimeout(timer);
+        delete window[cb];
+        s.remove();
+      }
+      window[cb] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+      s.onerror = () => {
+        cleanup();
+        reject(new Error("script error"));
+      };
+      s.src = `${baseUrl}&cb=${cb}`;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function fetchTrendsForSecid(secid) {
+    const url = `https://push2.eastmoney.com/api/qt/stock/trends2/get?secid=${encodeURIComponent(secid)}&fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&iscr=0`;
+    const j = await jsonp(url);
+    const d = j?.data;
+    if (!d || !Array.isArray(d.trends)) return null;
+    const bars = d.trends.map((line) => {
+      const p = String(line).split(",");
+      return {
+        time: p[0] || "",
+        open: Number(p[1]),
+        close: Number(p[2]),
+        high: Number(p[3]),
+        low: Number(p[4]),
+      };
+    }).filter((b) => b.time && Number.isFinite(b.close) && b.close > 0);
+    return {
+      secid,
+      code: d.code,
+      name: d.name,
+      preClose: Number(d.preClose || d.preSettlement || (bars[0]?.open ?? 0)),
+      bars,
+    };
+  }
+
+  function simulateMarketIntraday(mSnap, trendsMap) {
+    const mkt = mSnap.market;
+    const benchSecid = mkt === "CN" ? "1.000300" : "105.QQQ";
+    const anyTrend = trendsMap.get(benchSecid) || [...trendsMap.values()][0];
+    const refBars = anyTrend?.bars || [];
+    const sessionDate = refBars[0]?.time?.slice(0, 10) || mSnap.lastSettledDate || "";
+
+    let cash = Number(mSnap.cash || 0);
+    const holdings = new Map();
+    for (const p of mSnap.positions || []) {
+      holdings.set(p.secid, {
+        symbol: p.symbol,
+        name: p.name,
+        secid: p.secid,
+        isEtf: Boolean(p.isEtf),
+        qty: p.qty,
+        avgCost: p.avgCost,
+        lastPrice: p.lastPrice,
+      });
+    }
+
+    // 只有当行情所属的交易日 > 挂单创建时的收盘日（即已进入下一交易日盘中或收盘），挂单才会在该交易日触发
+    const pending = (mSnap.pendingOrders || []).map((o, idx) => ({
+      ...o,
+      _idx: idx,
+      activeToday: Boolean(sessionDate && o.createdAfterDate && sessionDate > o.createdAfterDate),
+      triggered: false,
+      fillPrice: null,
+      fillTime: null,
+    }));
+
+    const points = [];
+    const markers = [];
+
+    for (let k = 0; k < refBars.length; k++) {
+      const timeStr = refBars[k].time;
+      const hm = timeStr.slice(11, 16);
+
+      for (const ord of pending) {
+        if (!ord.activeToday || ord.triggered) continue;
+        const t = trendsMap.get(ord.secid);
+        const bar = t?.bars?.[Math.min(k, (t.bars.length || 1) - 1)];
+        const dayOpen = t?.bars?.[0]?.open;
+        if (!bar || !dayOpen) continue;
+
+        let fill = null;
+        if (ord.orderType === "MOO" && k === 0) {
+          fill = dayOpen;
+        } else if (ord.orderType === "LIMIT") {
+          if (ord.side === "BUY" && bar.low <= ord.limitPrice + 1e-6) {
+            fill = Math.min(dayOpen, ord.limitPrice);
+          } else if (ord.side === "SELL" && bar.high >= ord.limitPrice - 1e-6) {
+            fill = Math.max(dayOpen, ord.limitPrice);
+          }
+        } else if (ord.orderType === "STOP") {
+          if (ord.side === "SELL" && bar.low <= ord.stopPrice + 1e-6) {
+            fill = Math.min(dayOpen, ord.stopPrice);
+          } else if (ord.side === "BUY" && bar.high >= ord.stopPrice - 1e-6) {
+            fill = Math.max(dayOpen, ord.stopPrice);
+          }
+        }
+
+        if (fill !== null && fill > 0) {
+          const fee = calcLiveFee(mkt, ord.side, ord.qty, fill, ord.isEtf);
+          if (ord.side === "BUY") {
+            const totalCost = ord.qty * fill + fee;
+            if (totalCost <= cash + 1e-4) {
+              cash -= totalCost;
+              const prev = holdings.get(ord.secid);
+              const prevQty = prev ? prev.qty : 0;
+              const prevCost = prev ? prev.qty * prev.avgCost : 0;
+              const nextQty = prevQty + ord.qty;
+              holdings.set(ord.secid, {
+                symbol: ord.symbol,
+                name: ord.name,
+                secid: ord.secid,
+                isEtf: Boolean(ord.isEtf),
+                qty: nextQty,
+                avgCost: (prevCost + totalCost) / nextQty,
+                lastPrice: fill,
+              });
+              ord.triggered = true;
+              ord.fillPrice = fill;
+              ord.fillTime = hm;
+              markers.push({ idx: k, hm, symbol: ord.symbol, side: "BUY", price: fill });
+            }
+          } else {
+            const prev = holdings.get(ord.secid);
+            if (prev && prev.qty > 0) {
+              const sellQty = Math.min(prev.qty, ord.qty);
+              cash += sellQty * fill - fee;
+              prev.qty -= sellQty;
+              if (prev.qty <= 0) holdings.delete(ord.secid);
+              ord.triggered = true;
+              ord.fillPrice = fill;
+              ord.fillTime = hm;
+              markers.push({ idx: k, hm, symbol: ord.symbol, side: "SELL", price: fill });
+            }
+          }
+        }
+      }
+
+      let mv = 0;
+      for (const h of holdings.values()) {
+        const t = trendsMap.get(h.secid);
+        const bar = t?.bars?.[Math.min(k, (t.bars.length || 1) - 1)];
+        if (bar) h.lastPrice = bar.close;
+        mv += h.qty * h.lastPrice;
+      }
+      points.push({ time: hm, equity: cash + mv, cash, mv });
+    }
+
+    const lastPt = points[points.length - 1] || {
+      time: "—",
+      equity: cash + [...holdings.values()].reduce((s, h) => s + h.qty * h.lastPrice, 0),
+      cash,
+      mv: [...holdings.values()].reduce((s, h) => s + h.qty * h.lastPrice, 0),
+    };
+
+    return {
+      sessionDate,
+      lastTime: refBars[refBars.length - 1]?.time || "",
+      cash: lastPt.cash,
+      mv: lastPt.mv,
+      equity: lastPt.equity,
+      returnPct: mSnap.initialCash ? ((lastPt.equity - mSnap.initialCash) / mSnap.initialCash) * 100 : 0,
+      holdings: [...holdings.values()],
+      pending,
+      points,
+      markers,
+      trendsMap,
+    };
+  }
+
+  function renderTradingChartSvg(mSnap, sim, mode) {
+    const isCn = mSnap.market === "CN";
+    const cur = isCn ? "¥" : "$";
+    const stroke = isCn ? "#e8782f" : "#3b7dd8";
+    const fillId = `grad-${mSnap.market}-${mode}`;
+    const W = 490;
+    const H = 175;
+    const L = 48;
+    const R = 14;
+    const T = 18;
+    const B = 24;
+    const iw = W - L - R;
+    const ih = H - T - B;
+
+    if (mode === "daily") {
+      const curve = [...(mSnap.equityCurve || [])];
+      if (sim?.sessionDate && (!curve.length || curve[curve.length - 1].date < sim.sessionDate)) {
+        curve.push({ date: sim.sessionDate, equity: sim.equity, returnPct: sim.returnPct });
+      }
+      if (!curve.length) {
+        curve.push({ date: "初始", equity: mSnap.initialCash, returnPct: 0 });
+      }
+      const vals = curve.map((c) => c.equity);
+      const minV = Math.min(mSnap.initialCash * 0.995, ...vals);
+      const maxV = Math.max(mSnap.initialCash * 1.005, ...vals);
+      const span = Math.max(1, maxV - minV);
+      const X = (i) => L + (curve.length <= 1 ? iw / 2 : (i / (curve.length - 1)) * iw);
+      const Y = (v) => T + ih - ((v - minV) / span) * ih;
+      const baseY = Y(mSnap.initialCash);
+      const pathD = curve.map((c, i) => `${i ? "L" : "M"} ${X(i).toFixed(1)} ${Y(c.equity).toFixed(1)}`).join(" ");
+      return `<svg viewBox="0 0 ${W} ${H}" role="img">
+        <line x1="${L}" y1="${baseY.toFixed(1)}" x2="${W - R}" y2="${baseY.toFixed(1)}" stroke="#8a7768" stroke-dasharray="4 4" stroke-width="1.2"/>
+        <text x="${L - 4}" y="${(baseY + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#8a7768" font-family="Fusion Pixel">${(mSnap.initialCash / 1000).toFixed(0)}k</text>
+        <path d="${pathD}" fill="none" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        ${curve.map((c, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(c.equity).toFixed(1)}" r="4.5" fill="#fffdf8" stroke="${stroke}" stroke-width="2.5"/><text x="${X(i).toFixed(1)}" y="${H - 5}" text-anchor="middle" font-size="11.5" fill="#8a7768" font-family="LXGW WenKai">${c.date.slice(5)}</text><text x="${X(i).toFixed(1)}" y="${(Y(c.equity) - 9).toFixed(1)}" text-anchor="middle" font-size="12" fill="#3a2e29" font-family="Fusion Pixel">${cur}${Math.round(c.equity).toLocaleString()}</text>`).join("")}
+      </svg>`;
+    }
+
+    // Intraday minute-by-minute portfolio value curve
+    const pts = sim?.points || [];
+    if (!pts.length) {
+      return `<svg viewBox="0 0 ${W} ${H}" role="img"><text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="14" fill="#8a7768">等待分时行情数据…</text></svg>`;
+    }
+    const vals = pts.map((p) => p.equity);
+    const baseVal = mSnap.initialCash;
+    const minRaw = Math.min(baseVal, ...vals);
+    const maxRaw = Math.max(baseVal, ...vals);
+    const pad = Math.max(baseVal * 0.0015, (maxRaw - minRaw) * 0.18);
+    const minV = minRaw - pad;
+    const maxV = maxRaw + pad;
+    const span = Math.max(1, maxV - minV);
+    const totalSlots = Math.max(pts.length, isCn ? 240 : 390);
+    const X = (i) => L + (i / Math.max(1, totalSlots - 1)) * iw;
+    const Y = (v) => T + ih - ((v - minV) / span) * ih;
+    const baseY = Y(baseVal);
+    const dLine = pts.map((p, i) => `${i ? "L" : "M"} ${X(i).toFixed(1)} ${Y(p.equity).toFixed(1)}`).join(" ");
+    const lastIdx = pts.length - 1;
+    const dArea = `${dLine} L ${X(lastIdx).toFixed(1)} ${(T + ih).toFixed(1)} L ${X(0).toFixed(1)} ${(T + ih).toFixed(1)} Z`;
+
+    const markerNodes = (sim.markers || []).map((m) => {
+      const mx = X(m.idx);
+      const my = Y(pts[m.idx]?.equity ?? baseVal);
+      const onLeft = mx < L + iw * 0.55;
+      const tx = onLeft ? mx + 8 : mx - 8;
+      const anchor = onLeft ? "start" : "end";
+      const ty = my >= baseY - 6 ? Math.min(T + ih - 4, my + 16) : Math.max(T + 12, my - 10);
+      return `<g>
+        <circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="4.5" fill="#c8372d" stroke="#fffdf8" stroke-width="2"/>
+        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" font-size="11.5" fill="#c8372d" font-family="LXGW WenKai" font-weight="bold">⚡${m.hm} ${m.side === "BUY" ? "买入" : "卖出"}${m.symbol} @${cur}${m.price}</text>
+      </g>`;
+    }).join("");
+
+    const lastPt = pts[lastIdx];
+    const endX = X(lastIdx);
+    const endY = Y(lastPt.equity);
+
+    return `<svg viewBox="0 0 ${W} ${H}" role="img">
+      <defs>
+        <linearGradient id="${fillId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${stroke}" stop-opacity="0.26"/>
+          <stop offset="100%" stop-color="${stroke}" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <line x1="${L}" y1="${T}" x2="${L}" y2="${T + ih}" stroke="rgba(90,70,55,0.25)" stroke-width="1"/>
+      <line x1="${L}" y1="${T + ih}" x2="${W - R}" y2="${T + ih}" stroke="rgba(90,70,55,0.25)" stroke-width="1"/>
+      <line x1="${L}" y1="${baseY.toFixed(1)}" x2="${W - R}" y2="${baseY.toFixed(1)}" stroke="#8a7768" stroke-dasharray="4 4" stroke-width="1.2"/>
+      <text x="${L - 5}" y="${(T + 9).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#8a7768" font-family="Fusion Pixel">${Math.round(maxV).toLocaleString()}</text>
+      <text x="${L - 5}" y="${(baseY + 4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#8a7768" font-family="Fusion Pixel">${Math.round(baseVal).toLocaleString()}</text>
+      <text x="${L - 5}" y="${(T + ih).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#8a7768" font-family="Fusion Pixel">${Math.round(minV).toLocaleString()}</text>
+      <path d="${dArea}" fill="url(#${fillId})"/>
+      <path d="${dLine}" fill="none" stroke="${stroke}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+      ${markerNodes}
+      <circle cx="${endX.toFixed(1)}" cy="${endY.toFixed(1)}" r="4.5" fill="${stroke}" stroke="#fffdf8" stroke-width="2"/>
+      <text x="${L}" y="${H - 5}" font-size="11" fill="#8a7768" font-family="Fusion Pixel">${pts[0].time}</text>
+      <text x="${W - R}" y="${H - 5}" text-anchor="end" font-size="11" fill="#8a7768" font-family="Fusion Pixel">${lastPt.time} (${sim.sessionDate.slice(5)})</text>
+    </svg>`;
+  }
+
+  function renderLiveTradingInBook() {
+    if (!tradingSnap) return;
+    for (const mkt of ["CN", "US"]) {
+      const mSnap = tradingSnap[mkt];
+      const sim = liveMarketState[mkt];
+      const cur = mkt === "CN" ? "¥" : "$";
+      const mode = chartModes[mkt] || "intraday";
+
+      for (const pageEl of book.querySelectorAll(`[data-live-market="${mkt}"]`)) {
+        const q = (role) => pageEl.querySelector(`[data-role="${role}"]`);
+        pageEl.querySelectorAll("[data-chart-mode]").forEach((btn) => {
+          btn.classList.toggle("on", btn.dataset.chartMode === mode);
+        });
+        const titleEl = q("chart-title");
+        if (titleEl) {
+          titleEl.textContent = mode === "daily" ? "累计日线净值走势" : `当日实时净值分时图${sim?.sessionDate ? `（${sim.sessionDate}）` : ""}`;
+        }
+
+        if (!sim) continue;
+        const eq = sim.equity;
+        const ret = sim.returnPct;
+        const sign = ret >= 0 ? "+" : "";
+        if (q("equity")) q("equity").textContent = `${cur}${eq.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const retEl = q("ret");
+        if (retEl) {
+          retEl.textContent = `${sign}${ret.toFixed(2)}%`;
+          retEl.className = `tr-ret ${ret >= 0 ? "up" : "down"}`;
+        }
+        if (q("cash")) q("cash").textContent = `${cur}${Math.round(sim.cash).toLocaleString("en-US")}`;
+        if (q("mv")) q("mv").textContent = `${cur}${Math.round(sim.mv).toLocaleString("en-US")}`;
+
+        const pill = q("live-pill");
+        if (pill) {
+          const isActiveSession = sim.pending.some((o) => o.activeToday);
+          pill.className = `tr-live-pill ${isActiveSession || sim.holdings.length ? "live" : ""}`;
+          pill.innerHTML = `<span class="dot"></span>${sim.lastTime ? `实时行情 ${sim.lastTime.slice(5, 16)}` : "已同步"}`;
+        }
+
+        const chartBox = q("chart-svg");
+        if (chartBox) {
+          chartBox.innerHTML = renderTradingChartSvg(mSnap, sim, mode);
+        }
+
+        const listEl = q("orders-list");
+        if (listEl) {
+          const rows = [];
+          for (const h of sim.holdings) {
+            const pnl = h.qty * (h.lastPrice - h.avgCost);
+            const pnlPct = h.avgCost > 0 ? ((h.lastPrice - h.avgCost) / h.avgCost) * 100 : 0;
+            rows.push(
+              `<div class="tr-row"><span class="tr-tag hold">持仓</span><b>${h.name}</b><span class="soft">${h.symbol} · ${h.qty}股</span><span class="tr-price">${cur}${h.lastPrice.toFixed(2)}</span><span class="tr-pnl ${pnl >= 0 ? "up" : "down"}">${pnl >= 0 ? "+" : ""}${pnlPct.toFixed(2)}%</span></div>`,
+            );
+          }
+          for (const o of sim.pending) {
+            if (o.triggered) continue;
+            const t = sim.trendsMap.get(o.secid);
+            const curPrice = t?.bars?.[t.bars.length - 1]?.close;
+            const target = o.orderType === "MOO" ? "开盘市价" : o.orderType === "LIMIT" ? `限价${cur}${o.limitPrice}` : `止损${cur}${o.stopPrice}`;
+            const statusText = o.activeToday
+              ? curPrice
+                ? `现价${cur}${curPrice.toFixed(2)}·监控中`
+                : "盘中监控中"
+              : curPrice
+                ? `现价${cur}${curPrice.toFixed(2)}·待次日`
+                : "待次日开盘";
+            rows.push(
+              `<div class="tr-row"><span class="tr-tag pend">${o.side === "BUY" ? "预买" : "预卖"}</span><b>${o.name}</b><span class="soft">${o.symbol} · ${o.qty}股</span><span class="tr-price">${target}</span><span class="tr-status">${statusText}</span></div>`,
+            );
+          }
+          listEl.innerHTML = rows.join("") || `<div class="tr-empty">当前 100% 现金空仓</div>`;
+        }
+      }
+    }
+    fit();
+  }
+
+  function seedTrendsMap(mSnap) {
+    const map = new Map();
+    if (mSnap?.intradaySeed && typeof mSnap.intradaySeed === "object") {
+      for (const [k, v] of Object.entries(mSnap.intradaySeed)) {
+        if (v && Array.isArray(v.bars) && v.bars.length) map.set(k, v);
+      }
+    }
+    return map;
+  }
+
+  function initSeedSimulation() {
+    if (!tradingSnap) return;
+    for (const mkt of ["CN", "US"]) {
+      const mSnap = tradingSnap[mkt];
+      if (!mSnap) continue;
+      liveMarketState[mkt] = simulateMarketIntraday(mSnap, seedTrendsMap(mSnap));
+    }
+  }
+
+  async function updateQuotesFromSnap() {
+    if (!tradingSnap) return;
+    for (const mkt of ["CN", "US"]) {
+      const mSnap = tradingSnap[mkt];
+      if (!mSnap) continue;
+      const benchSecid = mkt === "CN" ? "1.000300" : "105.QQQ";
+      const secids = [
+        ...new Set([
+          benchSecid,
+          ...(mSnap.positions || []).map((p) => p.secid),
+          ...(mSnap.pendingOrders || []).map((o) => o.secid),
+        ]),
+      ];
+      const trendsMap = seedTrendsMap(mSnap);
+      // 串行逐个拉取分时，避免并发触发东财网关连接重置
+      for (const s of secids) {
+        try {
+          const item = await fetchTrendsForSecid(s);
+          if (item && item.bars.length) trendsMap.set(item.secid, item);
+        } catch {
+          // keep seed fallback
+        }
+      }
+      liveMarketState[mkt] = simulateMarketIntraday(mSnap, trendsMap);
+      renderLiveTradingInBook();
+    }
+  }
+
+  async function refreshLiveTrading(fetchRemoteJson = false) {
+    if (fetchRemoteJson) {
+      try {
+        const r = await fetch(`trading.json?t=${Date.now()}`, { cache: "no-store" });
+        if (r.ok) {
+          tradingSnap = await r.json();
+          initSeedSimulation();
+          renderLiveTradingInBook();
+        }
+      } catch {
+        // fallback to embedded seed
+      }
+    }
+    await updateQuotesFromSnap();
+  }
+
   build();
+  initSeedSimulation();
+  renderLiveTradingInBook();
+  if (!navigator.webdriver) {
+    refreshLiveTrading(false);
+    setInterval(() => refreshLiveTrading(true), 15000);
+  }
   if (document.fonts) document.fonts.ready.then(fit);
   addEventListener("load", fit);
   if (location.hash) setTimeout(fromHash, 350);
