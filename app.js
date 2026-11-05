@@ -381,12 +381,26 @@
     return null;
   }
 
+  /** 按分钟时间对齐（不按数组下标），缺失的分钟沿用上一根，避免不同来源 / 长度的分时互相错位 */
+  function barCursor(trend) {
+    const bars = trend?.bars || [];
+    let i = -1;
+    return {
+      dayOpen: bars[0]?.open,
+      at(time) {
+        while (i + 1 < bars.length && bars[i + 1].time <= time) i++;
+        return i >= 0 ? bars[i] : null;
+      },
+    };
+  }
+
   function simulateMarketIntraday(mSnap, trendsMap) {
     const mkt = mSnap.market;
     const benchSecid = mkt === "CN" ? "1.000300" : "105.QQQ";
     const anyTrend = trendsMap.get(benchSecid) || [...trendsMap.values()][0];
     const refBars = anyTrend?.bars || [];
     const sessionDate = refBars[0]?.time?.slice(0, 10) || mSnap.lastSettledDate || "";
+    const cursors = new Map([...trendsMap].map(([secid, t]) => [secid, barCursor(t)]));
 
     let cash = Number(mSnap.cash || 0);
     const holdings = new Map();
@@ -421,9 +435,9 @@
 
       for (const ord of pending) {
         if (!ord.activeToday || ord.triggered) continue;
-        const t = trendsMap.get(ord.secid);
-        const bar = t?.bars?.[Math.min(k, (t.bars.length || 1) - 1)];
-        const dayOpen = t?.bars?.[0]?.open;
+        const c = cursors.get(ord.secid);
+        const bar = c?.at(timeStr);
+        const dayOpen = c?.dayOpen;
         if (!bar || !dayOpen) continue;
 
         let fill = null;
@@ -485,8 +499,7 @@
 
       let mv = 0;
       for (const h of holdings.values()) {
-        const t = trendsMap.get(h.secid);
-        const bar = t?.bars?.[Math.min(k, (t.bars.length || 1) - 1)];
+        const bar = cursors.get(h.secid)?.at(timeStr);
         if (bar) h.lastPrice = bar.close;
         mv += h.qty * h.lastPrice;
       }
@@ -648,13 +661,11 @@
         if (pill) {
           const isActiveSession = sim.pending.some((o) => o.activeToday);
           pill.className = `tr-live-pill ${isActiveSession || sim.holdings.length ? "live" : ""}`;
-          pill.innerHTML = `<span class="dot"></span>${sim.lastTime ? `实时行情 ${sim.lastTime.slice(5, 16)}` : "已同步"}`;
+          setInner(pill, `<span class="dot"></span>${sim.lastTime ? `实时行情 ${sim.lastTime.slice(5, 16)}` : "已同步"}`);
         }
 
         const chartBox = q("chart-svg");
-        if (chartBox) {
-          chartBox.innerHTML = renderTradingChartSvg(mSnap, sim, mode);
-        }
+        if (chartBox) setInner(chartBox, renderTradingChartSvg(mSnap, sim, mode));
 
         const listEl = q("orders-list");
         if (listEl) {
@@ -682,76 +693,92 @@
               `<div class="tr-row"><span class="tr-tag pend">${o.side === "BUY" ? "预买" : "预卖"}</span><b>${o.name}</b><span class="soft">${o.symbol} · ${o.qty}股</span><span class="tr-price">${target}</span><span class="tr-status">${statusText}</span></div>`,
             );
           }
-          listEl.innerHTML = rows.join("") || `<div class="tr-empty">当前 100% 现金空仓</div>`;
+          setInner(listEl, rows.join("") || `<div class="tr-empty">当前 100% 现金空仓</div>`);
         }
       }
     }
-    fit();
+    if (changed) fit();
+    changed = false;
   }
 
-  function seedTrendsMap(mSnap) {
+  /** 内容没变就不替换 DOM（不闪、不重排） */
+  let changed = false;
+  function setInner(el, html) {
+    if (el._html === html) return;
+    el._html = html;
+    el.innerHTML = html;
+    changed = true;
+  }
+
+  /**
+   * 每个标的只保留「最新」的一份分时：浏览器拉到的实时分时存进 liveTrends，构建时内嵌的种子只在还没有实时数据时兜底。
+   * 比较最后一根的时间（同一时间比根数），永远不用更旧的数据覆盖更新的数据——这是之前图表定时「缩回一小段」的原因。
+   */
+  const liveTrends = new Map();
+  const newer = (a, b) => {
+    if (!a) return b;
+    if (!b) return a;
+    const ta = a.bars[a.bars.length - 1]?.time || "";
+    const tb = b.bars[b.bars.length - 1]?.time || "";
+    return tb > ta || (tb === ta && b.bars.length > a.bars.length) ? b : a;
+  };
+  function trendsFor(mSnap) {
     const map = new Map();
-    if (mSnap?.intradaySeed && typeof mSnap.intradaySeed === "object") {
-      for (const [k, v] of Object.entries(mSnap.intradaySeed)) {
-        if (v && Array.isArray(v.bars) && v.bars.length) map.set(k, v);
-      }
+    for (const [k, v] of Object.entries(mSnap?.intradaySeed || {})) {
+      if (v && Array.isArray(v.bars) && v.bars.length) map.set(k, v);
     }
+    for (const [k, v] of liveTrends) map.set(k, newer(map.get(k), v));
     return map;
   }
-
-  function initSeedSimulation() {
+  function resimulate() {
     if (!tradingSnap) return;
     for (const mkt of ["CN", "US"]) {
       const mSnap = tradingSnap[mkt];
-      if (!mSnap) continue;
-      liveMarketState[mkt] = simulateMarketIntraday(mSnap, seedTrendsMap(mSnap));
+      if (mSnap) liveMarketState[mkt] = simulateMarketIntraday(mSnap, trendsFor(mSnap));
     }
-  }
-
-  async function updateQuotesFromSnap() {
-    if (!tradingSnap) return;
-    await Promise.all(
-      ["CN", "US"].map(async (mkt) => {
-        const mSnap = tradingSnap[mkt];
-        if (!mSnap) return;
-        const benchSecid = mkt === "CN" ? "1.000300" : "105.QQQ";
-        const secids = [
-          ...new Set([
-            benchSecid,
-            ...(mSnap.positions || []).map((p) => p.secid),
-            ...(mSnap.pendingOrders || []).map((o) => o.secid),
-          ]),
-        ];
-        const trendsMap = seedTrendsMap(mSnap);
-        const fetched = await Promise.all(secids.map((s) => fetchTrendsForSecid(s).catch(() => null)));
-        for (const item of fetched) {
-          if (item && item.bars.length) trendsMap.set(item.secid, item);
-        }
-        liveMarketState[mkt] = simulateMarketIntraday(mSnap, trendsMap);
-      }),
-    );
     renderLiveTradingInBook();
   }
 
-  async function refreshLiveTrading(fetchRemoteJson = false) {
-    if (fetchRemoteJson) {
-      try {
-        const r = await fetch(`trading.json?t=${Date.now()}`, { cache: "no-store" });
-        if (r.ok) {
-          tradingSnap = await r.json();
-          initSeedSimulation();
-          renderLiveTradingInBook();
-        }
-      } catch {
-        // fallback to embedded seed
-      }
+  async function fetchLiveQuotes() {
+    if (!tradingSnap) return;
+    const secids = new Set();
+    for (const mkt of ["CN", "US"]) {
+      const mSnap = tradingSnap[mkt];
+      if (!mSnap) continue;
+      secids.add(mkt === "CN" ? "1.000300" : "105.QQQ");
+      for (const p of mSnap.positions || []) secids.add(p.secid);
+      for (const o of mSnap.pendingOrders || []) secids.add(o.secid);
     }
-    await updateQuotesFromSnap();
+    const fetched = await Promise.all([...secids].map((s) => fetchTrendsForSecid(s).catch(() => null)));
+    for (const item of fetched) {
+      if (item && item.bars.length) liveTrends.set(item.secid, newer(liveTrends.get(item.secid), item));
+    }
+  }
+
+  let refreshing = false;
+  async function refreshLiveTrading(fetchRemoteJson = false) {
+    if (refreshing) return;
+    refreshing = true;
+    try {
+      if (fetchRemoteJson) {
+        try {
+          const r = await fetch(`trading.json?t=${Date.now()}`, { cache: "no-store" });
+          const next = r.ok ? await r.json() : null;
+          // 账本没变就不替换；变了也不单独重画，等下面拿到实时分时一起算
+          if (next?.updatedAt && next.updatedAt !== tradingSnap?.updatedAt) tradingSnap = next;
+        } catch {
+          // keep current snapshot
+        }
+      }
+      await fetchLiveQuotes();
+      resimulate();
+    } finally {
+      refreshing = false;
+    }
   }
 
   build();
-  initSeedSimulation();
-  renderLiveTradingInBook();
+  resimulate();
   refreshLiveTrading(false);
   if (!navigator.webdriver) {
     setInterval(() => refreshLiveTrading(true), 15000);
