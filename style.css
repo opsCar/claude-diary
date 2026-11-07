@@ -83,6 +83,7 @@ img, video { display: block; max-width: 100%; }
 .tabs a[data-week="w1"] { background: #9cc7b4; }
 .tabs a[data-week="w2"] { background: #f2a873; }
 .tabs a[data-week="trade"] { background: #f0cf7b; }
+.tabs a[data-week="thanks"] { background: #f2b5bd; }
 .tabs a[aria-current="true"] { transform: translateY(-8px); }
 
 /* ---------- pages ---------- */
@@ -235,6 +236,14 @@ img, video { display: block; max-width: 100%; }
 .dotgrid { display: grid; grid-template-columns: repeat(26, 1fr); gap: 4px; max-width: 470px; }
 .dotgrid i { aspect-ratio: 1; border-radius: 50%; background: var(--orange); }
 .chart svg { width: 100%; height: auto; overflow: visible; }
+.thanks-names { list-style: none; padding: 0; margin: 14px 0; display: flex; flex-wrap: wrap; gap: 10px 10px; }
+.thanks-names li { display: flex; align-items: center; gap: 8px; font-family: var(--title); font-size: 24px; padding: 4px 16px 4px 4px; border-radius: 30px; background: rgba(232, 120, 47, 0.14); color: var(--orange-deep); }
+.thanks-names img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 3px solid var(--cream); box-shadow: 0 2px 4px rgba(50, 30, 15, 0.2); }
+.thanks-wall { display: flex; flex-wrap: wrap; justify-content: center; gap: 26px 22px; margin-top: 22px; }
+.thanks-wall .polaroid { width: 152px; padding: 7px 7px 9px; }
+.thanks-wall .polaroid .pic { aspect-ratio: 1199 / 1312; }
+.thanks-wall .polaroid .cap { font-size: 16px; padding: 6px 2px 2px; }
+.thanks-wall .polaroid .msg { font-size: 13px; line-height: 1.45; color: var(--soft); text-align: center; padding: 0 2px; text-wrap: balance; }
 
 /* ---------- live paper-trading pages (#trade) ---------- */
 .tr-page { display: flex; flex-direction: column; gap: 8px; }
