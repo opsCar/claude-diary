@@ -239,11 +239,18 @@ img, video { display: block; max-width: 100%; }
 .thanks-names { list-style: none; padding: 0; margin: 14px 0; display: flex; flex-wrap: wrap; gap: 10px 10px; }
 .thanks-names li { display: flex; align-items: center; gap: 8px; font-family: var(--title); font-size: 24px; padding: 4px 16px 4px 4px; border-radius: 30px; background: rgba(232, 120, 47, 0.14); color: var(--orange-deep); }
 .thanks-names img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 3px solid var(--cream); box-shadow: 0 2px 4px rgba(50, 30, 15, 0.2); }
+.thanks-names.dense { gap: 7px 8px; margin: 10px 0; }
+.thanks-names.dense li { font-size: 19px; padding: 3px 12px 3px 3px; gap: 6px; }
+.thanks-names.dense img { width: 34px; height: 34px; border-width: 2px; }
 .thanks-wall { display: flex; flex-wrap: wrap; justify-content: center; gap: 26px 22px; margin-top: 22px; }
 .thanks-wall .polaroid { width: 152px; padding: 7px 7px 9px; }
 .thanks-wall .polaroid .pic { aspect-ratio: 1199 / 1312; }
 .thanks-wall .polaroid .cap { font-size: 16px; padding: 6px 2px 2px; }
 .thanks-wall .polaroid .msg { font-size: 13px; line-height: 1.45; color: var(--soft); text-align: center; padding: 0 2px; text-wrap: balance; }
+.thanks-wall.dense { gap: 11px 14px; margin-top: 10px; }
+.thanks-wall.dense .polaroid { width: 142px; padding: 5px 5px 6px; }
+.thanks-wall.dense .polaroid .cap { font-size: 13.5px; padding: 4px 2px 1px; }
+.thanks-wall.dense .polaroid .msg { font-size: 11px; line-height: 1.3; }
 
 /* ---------- live paper-trading pages (#trade) ---------- */
 .tr-page { display: flex; flex-direction: column; gap: 8px; }
