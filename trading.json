@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T12:58:25.150Z",
+  "updatedAt": "2026-11-09T01:28:29.700Z",
   "CN": {
     "market": "CN",
     "label": "大A模拟盘（¥100,000）",
@@ -83,8 +83,8 @@
         "equity": 100000,
         "returnPct": 0,
         "drawdownPct": 0,
-        "benchmarkClose": 4054.28,
-        "benchmarkReturnPct": -1.15
+        "benchmarkClose": 4066.28,
+        "benchmarkReturnPct": -0.85
       }
     ],
     "recentOrders": [
