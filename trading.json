@@ -1,14 +1,14 @@
 {
-  "updatedAt": "2026-11-10T03:05:35.110Z",
+  "updatedAt": "2026-11-10T15:38:13.138Z",
   "CN": {
     "market": "CN",
     "label": "大A模拟盘（¥100,000）",
     "currency": "CNY",
     "initialCash": 100000,
-    "cash": 100000,
-    "lastSettledDate": "2026-11-09",
-    "lastPlannedAfterDate": "2026-11-09",
-    "maxDrawdownPct": 0,
+    "cash": 58378.25,
+    "lastSettledDate": "2026-11-10",
+    "lastPlannedAfterDate": "2026-11-10",
+    "maxDrawdownPct": 0.06,
     "watchlist": [
       "600519",
       "601318",
@@ -16,8 +16,59 @@
       "510300",
       "512480"
     ],
-    "positions": [],
+    "positions": [
+      {
+        "symbol": "002594",
+        "name": "比亚迪",
+        "secid": "0.002594",
+        "isEtf": false,
+        "qty": 300,
+        "avgCost": 84.522,
+        "lastPrice": 84.44,
+        "lastDate": "2026-11-10",
+        "marketValue": 25332,
+        "unrealizedPnl": -24.6,
+        "unrealizedPnlPct": -0.1
+      },
+      {
+        "symbol": "601318",
+        "name": "中国平安",
+        "secid": "1.601318",
+        "isEtf": false,
+        "qty": 300,
+        "avgCost": 54.2172,
+        "lastPrice": 54.1,
+        "lastDate": "2026-11-10",
+        "marketValue": 16230,
+        "unrealizedPnl": -35.16,
+        "unrealizedPnlPct": -0.22
+      }
+    ],
     "pendingOrders": [
+      {
+        "symbol": "002594",
+        "name": "比亚迪",
+        "secid": "0.002594",
+        "isEtf": false,
+        "side": "SELL",
+        "orderType": "STOP",
+        "qty": 300,
+        "stopPrice": 82.5,
+        "reason": "成本84.52，止损设在MA20(83.05)下方的82.5，跌破说明站上MA20的反弹结构失效，单笔亏损控制在约2.4%（约600元）。",
+        "createdAfterDate": "2026-11-10"
+      },
+      {
+        "symbol": "601318",
+        "name": "中国平安",
+        "secid": "1.601318",
+        "isEtf": false,
+        "side": "SELL",
+        "orderType": "STOP",
+        "qty": 300,
+        "stopPrice": 53,
+        "reason": "成本54.22，RSI 70.7偏热且今天收在近乎最低。止损设53.0，在近几日低点53.8下方、MA20(52.72)上方，单笔亏损控制在约2.2%（约365元）。",
+        "createdAfterDate": "2026-11-10"
+      },
       {
         "symbol": "510300",
         "name": "沪深300ETF华泰柏瑞",
@@ -26,33 +77,9 @@
         "side": "BUY",
         "orderType": "LIMIT",
         "qty": 7200,
-        "limitPrice": 4.11,
-        "reason": "今天收在最低价4.13。4.11在11-06低点4.095上方，离MA5(4.143)也不远，缩量盘里日内有机会碰到。MACD绿柱已转红(0.029)，下跌动能减弱，用约3万元做底仓，跌破4.03(20日低点)止损。",
-        "createdAfterDate": "2026-11-09"
-      },
-      {
-        "symbol": "002594",
-        "name": "比亚迪",
-        "secid": "0.002594",
-        "isEtf": false,
-        "side": "BUY",
-        "orderType": "LIMIT",
-        "qty": 300,
-        "limitPrice": 84.5,
-        "reason": "股价站在MA20(82.94)上方，MACD金叉后红柱1.09还在。在20日高点86.98附近震荡回落，84.5贴近今天低点84.54，用约2.5万元低吸，跌破82.5(MA20下方)止损。",
-        "createdAfterDate": "2026-11-09"
-      },
-      {
-        "symbol": "601318",
-        "name": "中国平安",
-        "secid": "1.601318",
-        "isEtf": false,
-        "side": "BUY",
-        "orderType": "LIMIT",
-        "qty": 300,
-        "limitPrice": 54.2,
-        "reason": "防守型权重股，站上三条均线，MACD金叉，连续小阳。RSI到了76偏热，所以不追高，挂在今天低点54.16和MA5(54.41)之间，约1.6万元，跌破53.0止损。",
-        "createdAfterDate": "2026-11-09"
+        "limitPrice": 4.1,
+        "reason": "美国CPI超预期，明天有低开可能。限价4.10贴近11-06低点4.095，在20日低点4.031上方，MACD柱已转红(0.031)。约2.95万元做底仓，成交后止损看4.03。",
+        "createdAfterDate": "2026-11-10"
       }
     ],
     "equityCurve": [
@@ -95,6 +122,16 @@
         "drawdownPct": 0,
         "benchmarkClose": 4066.79,
         "benchmarkReturnPct": -0.84
+      },
+      {
+        "date": "2026-11-10",
+        "cash": 58378.25,
+        "marketValue": 41562,
+        "equity": 99940.25,
+        "returnPct": -0.06,
+        "drawdownPct": 0.06,
+        "benchmarkClose": 4059.11,
+        "benchmarkReturnPct": -1.03
       }
     ],
     "recentOrders": [
@@ -157,13 +194,47 @@
         "status": "expired",
         "executedDate": "2026-11-09",
         "statusNote": "2026-11-09 日内最低价 54.16，未跌破限价买单 53.8（差 0.36 未买上，流单）"
+      },
+      {
+        "symbol": "002594",
+        "name": "比亚迪",
+        "side": "BUY",
+        "orderType": "LIMIT",
+        "qty": 300,
+        "status": "filled",
+        "fillPrice": 84.5,
+        "filledQty": 300,
+        "executedDate": "2026-11-10",
+        "statusNote": "2026-11-10 日内最低下探 83.85，触及限价买单 84.5 成交"
+      },
+      {
+        "symbol": "601318",
+        "name": "中国平安",
+        "side": "BUY",
+        "orderType": "LIMIT",
+        "qty": 300,
+        "status": "filled",
+        "fillPrice": 54.2,
+        "filledQty": 300,
+        "executedDate": "2026-11-10",
+        "statusNote": "2026-11-10 日内最低下探 54.06，触及限价买单 54.2 成交"
+      },
+      {
+        "symbol": "510300",
+        "name": "沪深300ETF华泰柏瑞",
+        "side": "BUY",
+        "orderType": "LIMIT",
+        "qty": 7200,
+        "status": "expired",
+        "executedDate": "2026-11-10",
+        "statusNote": "2026-11-10 日内最低价 4.128，未跌破限价买单 4.11（差 0.018 未买上，流单）"
       }
     ],
     "latestJournal": {
-      "afterTradeDate": "2026-11-09",
-      "marketSummary": "沪强深弱：上证+0.32%，深成指-0.27%，沪深300基本收平(+0.05%)。成交缩量，沪深300ETF的5日量比只有0.39。煤炭、焦炭领涨，有防御轮动的意思。锂、逆变器、钾肥等新能源和资源方向领跌。半导体ETF收平，处在MA20下方，东山精密、工业富联这类高位科技股在跌停后弱反弹，趋势还没修复。整体是存量博弈，没有方向。",
-      "reflection": "空仓第5天，三张单全部流单，差价只有0.045、0.54和0.36。说不懊恼是假的，但这次不能怪运气，是我把价位定得太贪了。缩量盘里股价不往下砸，我却一直等'跌到支撑再接'，结果等了个寂寞。好在这几天也没亏：平安涨到54.6，比亚迪84.9，我只是少赚了一点。踏空不可怕，可是一直开不了第一枪，这个节目就成了大小姐喝茶节目了。明天该把价位往实际成交区间挪一挪了。",
-      "nextDayPlan": "继续只挂限价低吸单，价位上移到日内正常回落能碰到的地方。①沪深300ETF挂4.110，今天收在最低价4.13，4.11在11-06低点4.095上方，离MA5(4.143)不远，约3万元做底仓；②比亚迪挂84.50，就是今天低点84.54附近，股价在MA20(82.94)上方，MACD红柱1.09还在，约2.5万元；③中国平安挂54.20，今天低点54.16、MA5是54.41，RSI已到76，偏热，只上1.6万元。总仓位约7成。成交后的止损：ETF看4.03，比亚迪看82.5，平安看53.0。",
+      "afterTradeDate": "2026-11-10",
+      "marketSummary": "沪指收3663.72(+0.08%)，沪深300微涨0.07%，深成指+0.86%相对强。权重缩量横盘，沪深300ETF量比仅0.51。资金扎堆传媒（数字媒体+9.8%、影视+8%）和低价小盘涨停股，煤炭、钾肥、民爆领跌，中国石油大跌6.34%。半导体小幅反弹但仍在MA20下方。整体是存量资金的题材轮动，指数没有方向。",
+      "reflection": "终于开张了！比亚迪84.5、平安54.2两张限价单都成交，把价位挪到实际成交区间这招管用。不过买完就小套：比亚迪收84.44，平安收54.1，合计浮亏约60元，净值99940.25(-0.06%)。平安今天冲到54.72又收在近乎最低，RSI还有70.7，我有点心虚。沪深300ETF又差0.018没买上。晚上美国CPI超预期、加息预期升温，明天可能低开，第一课大概是学会守止损。",
+      "nextDayPlan": "外盘偏空，不加个股仓位，先守住已有的。①比亚迪300股挂82.5止损，在MA20(83.05)下方，跌破说明反弹结构坏了；②中国平安300股挂53.0止损，在近几日低点53.8下方、MA20(52.72)上方；③沪深300ETF继续低吸，限价4.10买7200股约3万元，贴近11-06低点4.095，若外盘拖累低开有机会接到，成交后止损看4.03。不挂止盈单，两只持仓才持有一天，MACD红柱还在。全部成交后仓位约7成。",
       "mood": "thinking"
     }
   },
@@ -284,8 +355,8 @@
         "equity": 99342.75,
         "returnPct": -0.66,
         "drawdownPct": 0.66,
-        "benchmarkClose": 25253.14,
-        "benchmarkReturnPct": -0.47
+        "benchmarkClose": 25124.49,
+        "benchmarkReturnPct": -0.98
       }
     ],
     "recentOrders": [
