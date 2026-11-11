@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-11T14:51:49.334Z",
+  "updatedAt": "2026-11-11T21:31:07.101Z",
   "CN": {
     "market": "CN",
     "label": "大A模拟盘（¥100,000）",
@@ -272,16 +272,14 @@
     "label": "纳斯达克模拟盘（$100,000）",
     "currency": "USD",
     "initialCash": 100000,
-    "cash": 74273,
-    "lastSettledDate": "2026-11-10",
-    "lastPlannedAfterDate": "2026-11-10",
+    "cash": 82102,
+    "lastSettledDate": "2026-11-11",
+    "lastPlannedAfterDate": "2026-11-11",
     "maxDrawdownPct": 1.46,
     "watchlist": [
       "QQQ",
-      "MSFT",
       "AAPL",
-      "AVGO",
-      "NVDA"
+      "AVGO"
     ],
     "positions": [
       {
@@ -291,24 +289,11 @@
         "isEtf": true,
         "qty": 25,
         "avgCost": 683.16,
-        "lastPrice": 674.76,
-        "lastDate": "2026-11-10",
-        "marketValue": 16869,
-        "unrealizedPnl": -210,
-        "unrealizedPnlPct": -1.23
-      },
-      {
-        "symbol": "MSFT",
-        "name": "微软",
-        "secid": "105.MSFT",
-        "isEtf": false,
-        "qty": 15,
-        "avgCost": 539.0667,
-        "lastPrice": 533.16,
-        "lastDate": "2026-11-10",
-        "marketValue": 7997.4,
-        "unrealizedPnl": -88.6,
-        "unrealizedPnlPct": -1.1
+        "lastPrice": 690.38,
+        "lastDate": "2026-11-11",
+        "marketValue": 17259.5,
+        "unrealizedPnl": 180.5,
+        "unrealizedPnlPct": 1.06
       }
     ],
     "pendingOrders": [
@@ -320,21 +305,9 @@
         "side": "SELL",
         "orderType": "STOP",
         "qty": 25,
-        "stopPrice": 658,
-        "reason": "止损维持658，在11-09低点662.02和11-10低点667.05下方。价格仍在MA20（700.9）下方，MACD绿柱-7.76，跌破658说明缩量反弹失败，全部离场，按成本683.16算最多亏约$629（净值0.63%）。",
-        "createdAfterDate": "2026-11-10"
-      },
-      {
-        "symbol": "MSFT",
-        "name": "微软",
-        "secid": "105.MSFT",
-        "isEtf": false,
-        "side": "SELL",
-        "orderType": "STOP",
-        "qty": 15,
-        "stopPrice": 522,
-        "reason": "今天收533.16，只比MA20（531.1）高2美元，MACD柱转负（-0.21）。止损522放在11-06低点524.47和今天低点526.37下方，跌破说明两次回踩的支撑失效，全部离场，按成本539.07算最多亏约$256（净值0.26%）。",
-        "createdAfterDate": "2026-11-10"
+        "stopPrice": 666,
+        "reason": "止损从658上移到666，在11-10低点667.05和MA5（669.5）下方。价格仍在MA20（698.9）下方，5日量比0.58，MACD绿柱-3.75，跌破666说明缩量反弹失败，全部离场，按成本683.16算最多亏约$429（净值0.43%）。",
+        "createdAfterDate": "2026-11-11"
       },
       {
         "symbol": "AAPL",
@@ -344,9 +317,9 @@
         "side": "BUY",
         "orderType": "LIMIT",
         "qty": 25,
-        "limitPrice": 346,
-        "reason": "站在MA5（347.1）、MA20（344.2）、MA60（333.3）附近或上方，RSI 53.1，今天只跌0.62%，比大盘和MSFT抗跌。限价346贴近今天低点346.46，在MA20上方约0.5%，回踩到了才买，约8.7%仓位。昨天345差1.46没买上，这次只上调1美元，不追高。",
-        "createdAfterDate": "2026-11-10"
+        "limitPrice": 352,
+        "reason": "今天收355.63，接近20日高点355.91，MA5（348.3）、MA20（344.9）、MA60（334.0）向上排列，RSI 54.9不过热，MACD红柱0.98。限价352比收盘低约1%，在11-10高点353.87下方，回踩才买，约8.9%仓位。前三次挂345/346都没买上，这次上调但仍不追市价。",
+        "createdAfterDate": "2026-11-11"
       }
     ],
     "equityCurve": [
@@ -409,43 +382,19 @@
         "drawdownPct": 0.86,
         "benchmarkClose": 25386.16,
         "benchmarkReturnPct": 0.06
+      },
+      {
+        "date": "2026-11-11",
+        "cash": 82102,
+        "marketValue": 17259.5,
+        "equity": 99361.5,
+        "returnPct": -0.64,
+        "drawdownPct": 0.64,
+        "benchmarkClose": 25466.19,
+        "benchmarkReturnPct": 0.37
       }
     ],
     "recentOrders": [
-      {
-        "symbol": "MSFT",
-        "name": "微软",
-        "side": "BUY",
-        "orderType": "LIMIT",
-        "qty": 25,
-        "status": "expired",
-        "executedDate": "2026-11-04",
-        "statusNote": "2026-11-04 日内最低价 542.3，未跌破限价买单 512（差 30.3 未买上，流单）"
-      },
-      {
-        "symbol": "NVDA",
-        "name": "英伟达",
-        "side": "SELL",
-        "orderType": "STOP",
-        "qty": 80,
-        "status": "filled",
-        "fillPrice": 196,
-        "filledQty": 80,
-        "executedDate": "2026-11-05",
-        "statusNote": "2026-11-05 日内最低跌至 181.462，触发止损线 196 砍仓成交"
-      },
-      {
-        "symbol": "QQQ",
-        "name": "纳斯达克100ETF-Invesco",
-        "side": "BUY",
-        "orderType": "LIMIT",
-        "qty": 25,
-        "status": "filled",
-        "fillPrice": 683.12,
-        "filledQty": 25,
-        "executedDate": "2026-11-05",
-        "statusNote": "2026-11-05 开盘低开于 683.12（低于限价 685），按更优开盘价 683.12 成交"
-      },
       {
         "symbol": "AAPL",
         "name": "苹果",
@@ -537,13 +486,45 @@
         "status": "expired",
         "executedDate": "2026-11-10",
         "statusNote": "2026-11-10 日内最低价 346.461，未跌破限价买单 345（差 1.46 未买上，流单）"
+      },
+      {
+        "symbol": "MSFT",
+        "name": "微软",
+        "side": "SELL",
+        "orderType": "STOP",
+        "qty": 15,
+        "status": "filled",
+        "fillPrice": 522,
+        "filledQty": 15,
+        "executedDate": "2026-11-11",
+        "statusNote": "2026-11-11 日内最低跌至 518.45，触发止损线 522 砍仓成交"
+      },
+      {
+        "symbol": "QQQ",
+        "name": "纳斯达克100ETF-Invesco",
+        "side": "SELL",
+        "orderType": "STOP",
+        "qty": 25,
+        "status": "expired",
+        "executedDate": "2026-11-11",
+        "statusNote": "2026-11-11 日内最低价 683.562，未跌破止损线 658（安全度过，当日止损委托到期）"
+      },
+      {
+        "symbol": "AAPL",
+        "name": "苹果",
+        "side": "BUY",
+        "orderType": "LIMIT",
+        "qty": 25,
+        "status": "expired",
+        "executedDate": "2026-11-11",
+        "statusNote": "2026-11-11 日内最低价 349.325，未跌破限价买单 346（差 3.32 未买上，流单）"
       }
     ],
     "latestJournal": {
-      "afterTradeDate": "2026-11-10",
-      "marketSummary": "三大指数小幅收跌：纳指100跌0.74%，标普跌0.38%，道指跌0.30%。QQQ收674.76，5日量比0.51，缩量回落，仍在MA20（700.9）下方，MACD绿柱-7.76。半导体内部分化：NVDA放量再跌5.47%至168.89，RSI仅19；AVGO涨3.91%，AMD涨1.3%，MU跌1.1%。大票里MSFT跌2.2%，AAPL跌0.62%，AMZN涨1.48%。",
-      "reflection": "今天成交1笔：MSFT限价539买了15股，结果它最低砸到526.37，收533.16，当天浮亏$88.6。买点挂在前一天低点，今天直接被跌穿，这个位置选得不够低。AAPL最低346.46，离我的345差1.46，又没买上。QQQ的658止损没触发，但回吐0.68%，浮亏扩大到$210。净值$99,139.4，累计-0.86%，比昨天少了约$203。有点憋屈，但仓位只有25%，亏得不疼。",
-      "nextDayPlan": "先守后攻，不加新钱到弱势品种。1）QQQ止损维持658，全部25股：在近两日低点662.02和667.05下方，跌破说明反弹失败，最多亏约$629。2）MSFT挂止损522，全部15股：在11-06低点524.47和今天低点526.37下方，跌破说明MA20（531.1）失守后继续走弱，最多亏约$256。3）AAPL限价346买25股（约$8,650）：贴近今天低点346.46，在MA20（344.2）上方，三条均线向上。成交后总仓位约34%。NVDA、仙股、杠杆ETF不碰。",
+      "afterTradeDate": "2026-11-11",
+      "marketSummary": "纳指100涨1.6%，标普涨1.31%，道指只涨0.49%，科技明显强于传统板块。半导体领涨：SOXX涨6.01%，MU涨11.89%，AMD涨7.32%，AVGO涨3.99%，NVDA只反弹2.87%且RSI仅26。MSFT逆势跌2.26%。QQQ收690.38，仍在MA20（698.9）下方，5日量比0.58，属于缩量反弹。涨跌榜上全是仙股和杠杆ETF的暴涨暴跌。",
+      "reflection": "今天成交1笔：MSFT的522止损被触发，15股按522卖出，对比成本539.07实亏约$256。它盘中最低518.45，收521.125，这张止损单只比收盘多保住十几美元，但纪律执行了，不纠结。AAPL限价346又没买上，差3.32美元，已经连续三天够不着，它今天还收在20日最高附近的355.63，我挂得太保守。好在QQQ涨2.31%，浮盈转正到+$180.5，净值$99,361.5，累计-0.64%，比昨天多了约$222。",
+      "nextDayPlan": "两张单，守住QQQ、小步跟进AAPL。1）QQQ止损从658上移到666，全部25股：在11-10低点667.05和MA5（669.5）下方，跌破说明这波反弹失败，按成本683.16算最多亏约$429。价格还在MA20（698.9）下方且缩量，不加仓。2）AAPL限价352买25股（约$8,800）：比收盘低约1%，在11-10高点353.87下方、MA5（348.3）上方，三条均线向上，MACD红柱。成交后总仓位约26%。半导体单日涨太多不追，MSFT走弱不接回，仙股和杠杆ETF不碰。",
       "mood": "thinking"
     }
   }
