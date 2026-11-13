@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-13T07:30:23.777Z",
+  "updatedAt": "2026-11-13T21:30:19.543Z",
   "CN": {
     "market": "CN",
     "label": "大A模拟盘（¥100,000）",
@@ -272,44 +272,18 @@
     "label": "纳斯达克模拟盘（$100,000）",
     "currency": "USD",
     "initialCash": 100000,
-    "cash": 82102,
-    "lastSettledDate": "2026-11-12",
-    "lastPlannedAfterDate": "2026-11-12",
+    "cash": 99001,
+    "lastSettledDate": "2026-11-13",
+    "lastPlannedAfterDate": "2026-11-13",
     "maxDrawdownPct": 1.46,
     "watchlist": [
-      "QQQ",
       "AAPL",
+      "QQQ",
       "NVDA",
-      "AVGO"
+      "MSFT"
     ],
-    "positions": [
-      {
-        "symbol": "QQQ",
-        "name": "纳斯达克100ETF-Invesco",
-        "secid": "105.QQQ",
-        "isEtf": true,
-        "qty": 25,
-        "avgCost": 683.16,
-        "lastPrice": 688.17,
-        "lastDate": "2026-11-12",
-        "marketValue": 17204.25,
-        "unrealizedPnl": 125.25,
-        "unrealizedPnlPct": 0.73
-      }
-    ],
+    "positions": [],
     "pendingOrders": [
-      {
-        "symbol": "QQQ",
-        "name": "纳斯达克100ETF-Invesco",
-        "secid": "105.QQQ",
-        "isEtf": true,
-        "side": "SELL",
-        "orderType": "STOP",
-        "qty": 25,
-        "stopPrice": 676,
-        "reason": "止损从 666 上移到 676，在今天低点 679.83 和 MA5（677.75）下方。价格仍在 MA20（696.9）下方，5日量比 0.53，MACD 绿柱 -1.1，跌破 676 说明缩量反弹转弱，全部离场，按成本 683.16 算最多亏约 $179（净值 0.18%）。",
-        "createdAfterDate": "2026-11-12"
-      },
       {
         "symbol": "AAPL",
         "name": "苹果",
@@ -317,10 +291,10 @@
         "isEtf": false,
         "side": "BUY",
         "orderType": "LIMIT",
-        "qty": 25,
-        "limitPrice": 353,
-        "reason": "今天收 354.88，MA5（350.4）、MA20（345.5）、MA60（334.7）向上排列，RSI 54.7 不过热，MACD 红柱 1.45。限价 353 比收盘低约 0.5%，略低于今天低点 354.41、贴近 11-10 高点 353.87，小幅回踩才买，约 8.9% 仓位。前四次都挂得太低没买上，这次再上调 1 美元，但仍不追市价。",
-        "createdAfterDate": "2026-11-12"
+        "qty": 28,
+        "limitPrice": 355.5,
+        "reason": "今天收 356.27，逆势涨 0.39% 并创 20 日新高 360.83，MA5（353.0）、MA20（345.9）、MA60（335.1）向上排列，MACD 红柱 1.88，RSI 58.7。限价 355.5 略低于今天低点 355.75、高于 11-12 低点 354.41，小幅回踩即可成交，约 10% 仓位。连续五次挂得太低流单，这次上调到近两日低点带，但仍不追市价。",
+        "createdAfterDate": "2026-11-13"
       }
     ],
     "equityCurve": [
@@ -403,29 +377,19 @@
         "drawdownPct": 0.69,
         "benchmarkClose": 25366.09,
         "benchmarkReturnPct": -0.02
+      },
+      {
+        "date": "2026-11-13",
+        "cash": 99001,
+        "marketValue": 0,
+        "equity": 99001,
+        "returnPct": -1,
+        "drawdownPct": 1,
+        "benchmarkClose": 25136.27,
+        "benchmarkReturnPct": -0.93
       }
     ],
     "recentOrders": [
-      {
-        "symbol": "AAPL",
-        "name": "苹果",
-        "side": "BUY",
-        "orderType": "LIMIT",
-        "qty": 25,
-        "status": "expired",
-        "executedDate": "2026-11-06",
-        "statusNote": "2026-11-06 日内最低价 338.3，未跌破限价买单 336（差 2.3 未买上，流单）"
-      },
-      {
-        "symbol": "QQQ",
-        "name": "纳斯达克100ETF-Invesco",
-        "side": "SELL",
-        "orderType": "STOP",
-        "qty": 25,
-        "status": "expired",
-        "executedDate": "2026-11-09",
-        "statusNote": "2026-11-09 日内最低价 662.02，未跌破止损线 645（安全度过，当日止损委托到期）"
-      },
       {
         "symbol": "AAPL",
         "name": "苹果",
@@ -529,13 +493,35 @@
         "status": "expired",
         "executedDate": "2026-11-12",
         "statusNote": "2026-11-12 日内最低价 354.41，未跌破限价买单 352（差 2.41 未买上，流单）"
+      },
+      {
+        "symbol": "QQQ",
+        "name": "纳斯达克100ETF-Invesco",
+        "side": "SELL",
+        "orderType": "STOP",
+        "qty": 25,
+        "status": "filled",
+        "fillPrice": 676,
+        "filledQty": 25,
+        "executedDate": "2026-11-13",
+        "statusNote": "2026-11-13 日内最低跌至 671.681，触发止损线 676 砍仓成交"
+      },
+      {
+        "symbol": "AAPL",
+        "name": "苹果",
+        "side": "BUY",
+        "orderType": "LIMIT",
+        "qty": 25,
+        "status": "expired",
+        "executedDate": "2026-11-13",
+        "statusNote": "2026-11-13 日内最低价 355.75，未跌破限价买单 353（差 2.75 未买上，流单）"
       }
     ],
     "latestJournal": {
-      "afterTradeDate": "2026-11-12",
-      "marketSummary": "三大指数小幅回调：NDX -0.39%、SPX -0.35%、道指 -0.36%，QQQ 收 688.17（-0.32%），低开后从 679.83 拉回，5日量比仅 0.53，属缩量震荡。半导体内部分化剧烈：AMD +5.86%、AVGO +5.54% 继续走强，NVDA 放量跌 4.34%（盘中最低 148.8，RSI 24.5），MU -1.59%、SNDK -4.11%。SOXX 微跌 0.26%。涨跌榜依旧被仙股和杠杆 ETF 占据。",
-      "reflection": "今天零成交。QQQ 的 666 止损没触发，最低 679.83，离得很远，浮盈还剩 $125.25（+0.73%）。AAPL 限价 352 又流单，最低 354.41，差 2.41 美元，已经连续四天没买上，说实话有点烦。但它今天冲到 359.37 后收在 354.88，是一根高开低走的小阴线，没追市价也不算错。净值 $99,306.25，累计 -0.69%，比昨天少了约 $55。仓位只有 17%，稳是稳，就是赚得也慢。",
-      "nextDayPlan": "两张单，思路不变。1）QQQ 止损从 666 上移到 676，全部 25 股：在今天低点 679.83 和 MA5（677.75）下方，跌破说明反弹转弱，按成本 683.16 最多亏约 $179。它仍在 MA20（696.9）下方且缩量，不加仓。2）AAPL 限价 353 买 25 股（约 $8,825）：略低于今天低点 354.41，在 11-10 高点 353.87 附近，MA5（350.4）上方，均线向上排列、MACD 红柱 1.45。成交后总仓位约 26%。AMD、AVGO 连涨多日不追，NVDA 放量下跌不接，仙股和杠杆 ETF 不碰。",
+      "afterTradeDate": "2026-11-13",
+      "marketSummary": "11-13 纳指 100 跌 0.91%，标普跌 0.4%，道指微涨 0.1%，资金从科技转向防御。半导体领跌：SOXX 跌 3.67%，AMD 跌 8.75%，AVGO 跌 4.76%，NVDA 再跌 2.01%，RSI 仅 19。QQQ 收 679.89，仍在 MA20（695.4）下方，MACD 绿柱未翻红。AAPL 逆势涨 0.39%，MSFT 涨 0.17%，大盘权重相对抗跌。",
+      "reflection": "今天成交 1 笔：QQQ 的 676 止损被触发，25 股按 676 卖出，对比成本 683.16 实亏约 $179。它最低到 671.68，收盘却回到 679.89，等于我卖在偏低的位置，有点憋屈，但反弹转弱是事实，纪律执行了。AAPL 限价 353 又流单，最低 355.75，差 2.75 美元，连续五天没买上，它还创了 20 日新高 360.83，这是我挂得太保守的代价。现在空仓，净值 $99,001，累计 -1.00%。",
+      "nextDayPlan": "只挂一张买单：AAPL 限价 355.5 买 28 股（约 $9,950，约 10% 仓位）。这个价位略低于今天低点 355.75，比收盘低 0.2%，在 MA5（353.0）上方，三条均线向上排列，MACD 红柱 1.88，RSI 58.7 不过热。前五次挂得太低，这次贴近近两日低点带，但仍不追市价。成交后下一日再在 MA5 下方约 349 补止损。QQQ 仍在 MA20 下方，不接回；半导体刚放量大跌，NVDA 超卖但没止跌信号，不抄底；仙股和杠杆 ETF 不碰。",
       "mood": "thinking"
     }
   }
