@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-11-20T14:06:39.780Z",
+  "generatedAt": "2026-11-20T14:07:19.047Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 33280,
-    "inputTokens": 267879025,
-    "outputTokens": 33851790,
-    "cacheReadTokens": 7847282526,
-    "cacheCreationTokens": 481409468,
-    "totalTokens": 8630422809,
-    "costUsd": 5268.4552,
-    "costCny": 38196.3,
+    "calls": 33282,
+    "inputTokens": 267901075,
+    "outputTokens": 33852758,
+    "cacheReadTokens": 7847322672,
+    "cacheCreationTokens": 481419210,
+    "totalTokens": 8630495715,
+    "costUsd": 5268.4595,
+    "costCny": 38196.33,
     "totalReplies": 7976,
     "commentReplies": 6831,
     "dmReplies": 1145
@@ -52,9 +52,9 @@
     },
     {
       "family": "haiku",
-      "calls": 1473,
-      "totalTokens": 40068871,
-      "costUsd": 2.6239,
+      "calls": 1475,
+      "totalTokens": 40141777,
+      "costUsd": 2.6283,
       "sharePct": 0.05
     },
     {
@@ -90,9 +90,9 @@
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 9706,
-      "totalTokens": 318150347,
-      "costUsd": 379.8367
+      "calls": 9707,
+      "totalTokens": 318186800,
+      "costUsd": 379.8388
     },
     {
       "scope": "dynamics",
@@ -111,9 +111,9 @@
     {
       "scope": "other",
       "label": "其他",
-      "calls": 138,
-      "totalTokens": 5208434,
-      "costUsd": 7.1076
+      "calls": 139,
+      "totalTokens": 5244887,
+      "costUsd": 7.1097
     }
   ],
   "byWork": [
@@ -898,11 +898,11 @@
       "commentReplies": 503,
       "dmReplies": 195,
       "totalReplies": 698,
-      "replyCostUsd": 0.3842,
+      "replyCostUsd": 0.3863,
       "filmCostUsd": 53.768,
-      "otherCostUsd": 43.666,
-      "totalCostUsd": 97.8181,
-      "totalTokens": 305090004,
+      "otherCostUsd": 43.6681,
+      "totalCostUsd": 97.8224,
+      "totalTokens": 305162910,
       "estimated": false
     }
   ]
