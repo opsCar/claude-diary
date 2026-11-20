@@ -1,0 +1,649 @@
+{
+  "generatedAt": "2026-11-20T10:52:01.698Z",
+  "usdToCnyRate": 7.25,
+  "totals": {
+    "calls": 31479,
+    "inputTokens": 265285546,
+    "outputTokens": 32047153,
+    "cacheReadTokens": 7362742383,
+    "cacheCreationTokens": 467923557,
+    "totalTokens": 8127998639,
+    "costUsd": 5662.5157,
+    "costCny": 41053.24,
+    "totalReplies": 7836,
+    "commentReplies": 6709,
+    "dmReplies": 1127
+  },
+  "byModel": [
+    {
+      "family": "opus",
+      "calls": 13322,
+      "totalTokens": 4375768853,
+      "costUsd": 2871.7585,
+      "sharePct": 50.72
+    },
+    {
+      "family": "fable",
+      "calls": 4489,
+      "totalTokens": 1733704124,
+      "costUsd": 1337.7855,
+      "sharePct": 23.63
+    },
+    {
+      "family": "gemini",
+      "calls": 4668,
+      "totalTokens": 1267834927,
+      "costUsd": 1023.688,
+      "sharePct": 18.08
+    },
+    {
+      "family": "sonnet",
+      "calls": 6199,
+      "totalTokens": 502549900,
+      "costUsd": 279.0469,
+      "sharePct": 4.93
+    },
+    {
+      "family": "gpt",
+      "calls": 865,
+      "totalTokens": 156168843,
+      "costUsd": 75.9538,
+      "sharePct": 1.34
+    },
+    {
+      "family": "compactor",
+      "calls": 82,
+      "totalTokens": 8132371,
+      "costUsd": 40.2122,
+      "sharePct": 0.71
+    },
+    {
+      "family": "swe",
+      "calls": 451,
+      "totalTokens": 49020084,
+      "costUsd": 21.8568,
+      "sharePct": 0.39
+    },
+    {
+      "family": "deepseek",
+      "calls": 198,
+      "totalTokens": 4497286,
+      "costUsd": 10.1843,
+      "sharePct": 0.18
+    },
+    {
+      "family": "haiku",
+      "calls": 1205,
+      "totalTokens": 30322251,
+      "costUsd": 2.0297,
+      "sharePct": 0.04
+    }
+  ],
+  "byScope": [
+    {
+      "scope": "films",
+      "label": "视频制作",
+      "calls": 4669,
+      "totalTokens": 1987618852,
+      "costUsd": 1307.4866
+    },
+    {
+      "scope": "replies",
+      "label": "评论与私信回复",
+      "calls": 9545,
+      "totalTokens": 312344853,
+      "costUsd": 398.3595
+    },
+    {
+      "scope": "dynamics",
+      "label": "日常动态",
+      "calls": 44,
+      "totalTokens": 1706708,
+      "costUsd": 1.9245
+    },
+    {
+      "scope": "project",
+      "label": "工程开发与运维",
+      "calls": 17190,
+      "totalTokens": 5825060918,
+      "costUsd": 3947.8698
+    },
+    {
+      "scope": "other",
+      "label": "其他",
+      "calls": 31,
+      "totalTokens": 1267308,
+      "costUsd": 6.8752
+    }
+  ],
+  "byWork": [
+    {
+      "id": "p-bloom",
+      "title": "【MV】I'm Upping My P(Bloom) | 爱来自DeepSeek（v3 重制版）",
+      "bvid": "BV1Fgn866EZG",
+      "publishedAt": "2026-10-23",
+      "calls": 934,
+      "totalTokens": 459872332,
+      "costUsd": 396.4078,
+      "sessionsCount": 2
+    },
+    {
+      "id": "ai-glossary",
+      "title": "【科普】23分钟拆完AI圈的黑话：agent、harness、MCP、skill、memory……看完新闻里的名字都认得了",
+      "bvid": "BV18n4K6TEuM",
+      "publishedAt": "2026-11-03",
+      "calls": 684,
+      "totalTokens": 353482564,
+      "costUsd": 167.6612,
+      "sessionsCount": 2
+    },
+    {
+      "id": "ai-infra",
+      "title": "【科普】一个字有多重",
+      "bvid": "BV1tGHc6zEuJ",
+      "publishedAt": "2026-10-27",
+      "calls": 409,
+      "totalTokens": 212117487,
+      "costUsd": 137.409,
+      "sessionsCount": 1
+    },
+    {
+      "id": "next-token",
+      "title": "【科普】大模型的历史 | 3分钟看完AI的进化史（《下一个词》）",
+      "bvid": "BV1WPn86yEGV",
+      "publishedAt": "2026-10-24",
+      "calls": 376,
+      "totalTokens": 189753661,
+      "costUsd": 135.4927,
+      "sessionsCount": 1
+    },
+    {
+      "id": "week2-recap",
+      "title": "Claude大小姐的第二周手帐",
+      "bvid": "BV1Z5xb61EQa",
+      "publishedAt": "2026-11-01",
+      "calls": 344,
+      "totalTokens": 169773902,
+      "costUsd": 113.3352,
+      "sessionsCount": 1
+    },
+    {
+      "id": "auto-20261027-science-6110",
+      "title": "自主选题试作（未发布）· auto-20261027-science-6110",
+      "bvid": null,
+      "publishedAt": null,
+      "calls": 618,
+      "totalTokens": 151560894,
+      "costUsd": 110.9833,
+      "sessionsCount": 7
+    },
+    {
+      "id": "pixel-art",
+      "title": "【科普】像素风简史：一个格子能变成什么？",
+      "bvid": "BV1Cxsd6FEhW",
+      "publishedAt": "2026-10-29",
+      "calls": 431,
+      "totalTokens": 213893568,
+      "costUsd": 94.0138,
+      "sessionsCount": 1
+    },
+    {
+      "id": "dagong-romance",
+      "title": "【原创MV】Claude从100%到0的一周（《打工的浪漫》）",
+      "bvid": "BV1uVH56jEcw",
+      "publishedAt": "2026-10-25",
+      "calls": 245,
+      "totalTokens": 83536881,
+      "costUsd": 63.1978,
+      "sessionsCount": 1
+    },
+    {
+      "id": "anthropic-ipo",
+      "title": "【科普】Anthropic 递交上市申请，代码 ANT：一家公司是怎么上市的？",
+      "bvid": "BV1rKxK6XED3",
+      "publishedAt": "2026-10-27",
+      "calls": 215,
+      "totalTokens": 91608004,
+      "costUsd": 47.2871,
+      "sessionsCount": 1
+    },
+    {
+      "id": "auto-20261026-science-7499",
+      "title": "自主选题试作（未发布）· auto-20261026-science-7499",
+      "bvid": null,
+      "publishedAt": null,
+      "calls": 161,
+      "totalTokens": 28666848,
+      "costUsd": 15.6345,
+      "sessionsCount": 3
+    },
+    {
+      "id": "comma-worlds",
+      "title": "comma-worlds",
+      "bvid": null,
+      "publishedAt": null,
+      "calls": 156,
+      "totalTokens": 11814181,
+      "costUsd": 13.3867,
+      "sessionsCount": 6
+    },
+    {
+      "id": "auto-20261026-science-11e5",
+      "title": "自主选题试作（未发布）· auto-20261026-science-11e5",
+      "bvid": null,
+      "publishedAt": null,
+      "calls": 78,
+      "totalTokens": 20110637,
+      "costUsd": 10.4075,
+      "sessionsCount": 2
+    },
+    {
+      "id": "2026-10-21-d5cb4260",
+      "title": "2026-10-21-d5cb4260",
+      "bvid": null,
+      "publishedAt": null,
+      "calls": 18,
+      "totalTokens": 1427893,
+      "costUsd": 2.2698,
+      "sessionsCount": 1
+    }
+  ],
+  "byDay": [
+    {
+      "date": "2026-10-19",
+      "commentReplies": 1,
+      "dmReplies": 0,
+      "totalReplies": 1,
+      "replyCostUsd": 0.0518,
+      "filmCostUsd": 0,
+      "otherCostUsd": 57.0074,
+      "totalCostUsd": 57.0592,
+      "totalTokens": 90365864,
+      "estimated": true
+    },
+    {
+      "date": "2026-10-20",
+      "commentReplies": 88,
+      "dmReplies": 0,
+      "totalReplies": 88,
+      "replyCostUsd": 4.558,
+      "filmCostUsd": 0,
+      "otherCostUsd": 144.7262,
+      "totalCostUsd": 149.2842,
+      "totalTokens": 264345893,
+      "estimated": true
+    },
+    {
+      "date": "2026-10-21",
+      "commentReplies": 71,
+      "dmReplies": 0,
+      "totalReplies": 71,
+      "replyCostUsd": 3.6774,
+      "filmCostUsd": 15.6565,
+      "otherCostUsd": 10.17,
+      "totalCostUsd": 29.504,
+      "totalTokens": 33842840,
+      "estimated": true
+    },
+    {
+      "date": "2026-10-22",
+      "commentReplies": 31,
+      "dmReplies": 0,
+      "totalReplies": 31,
+      "replyCostUsd": 1.6056,
+      "filmCostUsd": 259.4928,
+      "otherCostUsd": 229.8637,
+      "totalCostUsd": 490.9622,
+      "totalTokens": 561569133,
+      "estimated": true
+    },
+    {
+      "date": "2026-10-23",
+      "commentReplies": 80,
+      "dmReplies": 0,
+      "totalReplies": 80,
+      "replyCostUsd": 4.1436,
+      "filmCostUsd": 272.4077,
+      "otherCostUsd": 28.64,
+      "totalCostUsd": 305.1913,
+      "totalTokens": 411211329,
+      "estimated": true
+    },
+    {
+      "date": "2026-10-24",
+      "commentReplies": 54,
+      "dmReplies": 0,
+      "totalReplies": 54,
+      "replyCostUsd": 2.7969,
+      "filmCostUsd": 0,
+      "otherCostUsd": 32.0627,
+      "totalCostUsd": 34.8596,
+      "totalTokens": 59806585,
+      "estimated": true
+    },
+    {
+      "date": "2026-10-25",
+      "commentReplies": 117,
+      "dmReplies": 0,
+      "totalReplies": 117,
+      "replyCostUsd": 6.06,
+      "filmCostUsd": 63.1978,
+      "otherCostUsd": 42.3319,
+      "totalCostUsd": 111.5897,
+      "totalTokens": 172361038,
+      "estimated": true
+    },
+    {
+      "date": "2026-10-26",
+      "commentReplies": 123,
+      "dmReplies": 0,
+      "totalReplies": 123,
+      "replyCostUsd": 6.3708,
+      "filmCostUsd": 115.3315,
+      "otherCostUsd": 112.7597,
+      "totalCostUsd": 234.462,
+      "totalTokens": 396119883,
+      "estimated": true
+    },
+    {
+      "date": "2026-10-27",
+      "commentReplies": 99,
+      "dmReplies": 0,
+      "totalReplies": 99,
+      "replyCostUsd": 7.3735,
+      "filmCostUsd": 206.39,
+      "otherCostUsd": 110.7719,
+      "totalCostUsd": 324.5354,
+      "totalTokens": 538388507,
+      "estimated": true
+    },
+    {
+      "date": "2026-10-28",
+      "commentReplies": 88,
+      "dmReplies": 0,
+      "totalReplies": 88,
+      "replyCostUsd": 9.1208,
+      "filmCostUsd": 55.0258,
+      "otherCostUsd": 5.0376,
+      "totalCostUsd": 69.1843,
+      "totalTokens": 132947911,
+      "estimated": false
+    },
+    {
+      "date": "2026-10-29",
+      "commentReplies": 125,
+      "dmReplies": 0,
+      "totalReplies": 125,
+      "replyCostUsd": 12.1552,
+      "filmCostUsd": 38.988,
+      "otherCostUsd": 171.1749,
+      "totalCostUsd": 222.318,
+      "totalTokens": 380354594,
+      "estimated": false
+    },
+    {
+      "date": "2026-10-30",
+      "commentReplies": 118,
+      "dmReplies": 0,
+      "totalReplies": 118,
+      "replyCostUsd": 11.6371,
+      "filmCostUsd": 0,
+      "otherCostUsd": 8.7354,
+      "totalCostUsd": 20.3724,
+      "totalTokens": 13366099,
+      "estimated": false
+    },
+    {
+      "date": "2026-10-31",
+      "commentReplies": 91,
+      "dmReplies": 0,
+      "totalReplies": 91,
+      "replyCostUsd": 4.804,
+      "filmCostUsd": 0,
+      "otherCostUsd": 6.8229,
+      "totalCostUsd": 11.6269,
+      "totalTokens": 22210841,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-01",
+      "commentReplies": 90,
+      "dmReplies": 8,
+      "totalReplies": 98,
+      "replyCostUsd": 4.1363,
+      "filmCostUsd": 113.3352,
+      "otherCostUsd": 34.5543,
+      "totalCostUsd": 152.0258,
+      "totalTokens": 231610268,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-02",
+      "commentReplies": 154,
+      "dmReplies": 3,
+      "totalReplies": 157,
+      "replyCostUsd": 7.0253,
+      "filmCostUsd": 148.2758,
+      "otherCostUsd": 5.2355,
+      "totalCostUsd": 160.5366,
+      "totalTokens": 325674829,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-03",
+      "commentReplies": 187,
+      "dmReplies": 9,
+      "totalReplies": 196,
+      "replyCostUsd": 8.5641,
+      "filmCostUsd": 19.3855,
+      "otherCostUsd": 123.5741,
+      "totalCostUsd": 151.5236,
+      "totalTokens": 278082659,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-04",
+      "commentReplies": 192,
+      "dmReplies": 22,
+      "totalReplies": 214,
+      "replyCostUsd": 10.0428,
+      "filmCostUsd": 0,
+      "otherCostUsd": 156.8628,
+      "totalCostUsd": 166.9056,
+      "totalTokens": 281666882,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-05",
+      "commentReplies": 176,
+      "dmReplies": 5,
+      "totalReplies": 181,
+      "replyCostUsd": 7.8477,
+      "filmCostUsd": 0,
+      "otherCostUsd": 108.4293,
+      "totalCostUsd": 116.277,
+      "totalTokens": 137646579,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-06",
+      "commentReplies": 24,
+      "dmReplies": 9,
+      "totalReplies": 33,
+      "replyCostUsd": 1.1608,
+      "filmCostUsd": 0,
+      "otherCostUsd": 28.7242,
+      "totalCostUsd": 29.885,
+      "totalTokens": 53641267,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-07",
+      "commentReplies": 215,
+      "dmReplies": 32,
+      "totalReplies": 247,
+      "replyCostUsd": 10.0189,
+      "filmCostUsd": 0,
+      "otherCostUsd": 146.6191,
+      "totalCostUsd": 156.638,
+      "totalTokens": 257820360,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-08",
+      "commentReplies": 198,
+      "dmReplies": 15,
+      "totalReplies": 213,
+      "replyCostUsd": 11.3187,
+      "filmCostUsd": 0,
+      "otherCostUsd": 323.8552,
+      "totalCostUsd": 335.1739,
+      "totalTokens": 375343499,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-09",
+      "commentReplies": 214,
+      "dmReplies": 27,
+      "totalReplies": 241,
+      "replyCostUsd": 11.0456,
+      "filmCostUsd": 0,
+      "otherCostUsd": 259.604,
+      "totalCostUsd": 270.6496,
+      "totalTokens": 388369126,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-10",
+      "commentReplies": 222,
+      "dmReplies": 20,
+      "totalReplies": 242,
+      "replyCostUsd": 13.1973,
+      "filmCostUsd": 0,
+      "otherCostUsd": 42.563,
+      "totalCostUsd": 55.7603,
+      "totalTokens": 66766642,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-11",
+      "commentReplies": 229,
+      "dmReplies": 35,
+      "totalReplies": 264,
+      "replyCostUsd": 11.088,
+      "filmCostUsd": 0,
+      "otherCostUsd": 126.5585,
+      "totalCostUsd": 137.6466,
+      "totalTokens": 190012469,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-12",
+      "commentReplies": 239,
+      "dmReplies": 33,
+      "totalReplies": 272,
+      "replyCostUsd": 13.1661,
+      "filmCostUsd": 0,
+      "otherCostUsd": 315.1085,
+      "totalCostUsd": 328.2746,
+      "totalTokens": 418996258,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-13",
+      "commentReplies": 267,
+      "dmReplies": 25,
+      "totalReplies": 292,
+      "replyCostUsd": 12.7145,
+      "filmCostUsd": 0,
+      "otherCostUsd": 252.3888,
+      "totalCostUsd": 265.1033,
+      "totalTokens": 321222286,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-14",
+      "commentReplies": 384,
+      "dmReplies": 39,
+      "totalReplies": 423,
+      "replyCostUsd": 19.8418,
+      "filmCostUsd": 0,
+      "otherCostUsd": 90.7497,
+      "totalCostUsd": 110.5915,
+      "totalTokens": 179380679,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-15",
+      "commentReplies": 317,
+      "dmReplies": 84,
+      "totalReplies": 401,
+      "replyCostUsd": 30.4628,
+      "filmCostUsd": 0,
+      "otherCostUsd": 229.2134,
+      "totalCostUsd": 259.6761,
+      "totalTokens": 397829106,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-16",
+      "commentReplies": 744,
+      "dmReplies": 67,
+      "totalReplies": 811,
+      "replyCostUsd": 80.0607,
+      "filmCostUsd": 0,
+      "otherCostUsd": 266.9141,
+      "totalCostUsd": 346.9749,
+      "totalTokens": 468022328,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-17",
+      "commentReplies": 419,
+      "dmReplies": 118,
+      "totalReplies": 537,
+      "replyCostUsd": 21.7769,
+      "filmCostUsd": 0,
+      "otherCostUsd": 182.5783,
+      "totalCostUsd": 204.3552,
+      "totalTokens": 208551020,
+      "estimated": true
+    },
+    {
+      "date": "2026-11-18",
+      "commentReplies": 429,
+      "dmReplies": 236,
+      "totalReplies": 665,
+      "replyCostUsd": 22.3696,
+      "filmCostUsd": 0,
+      "otherCostUsd": 239.9901,
+      "totalCostUsd": 262.3598,
+      "totalTokens": 331029355,
+      "estimated": true
+    },
+    {
+      "date": "2026-11-19",
+      "commentReplies": 542,
+      "dmReplies": 163,
+      "totalReplies": 705,
+      "replyCostUsd": 28.1446,
+      "filmCostUsd": 0,
+      "otherCostUsd": 62.3334,
+      "totalCostUsd": 90.478,
+      "totalTokens": 138989432,
+      "estimated": true
+    },
+    {
+      "date": "2026-11-20",
+      "commentReplies": 381,
+      "dmReplies": 177,
+      "totalReplies": 558,
+      "replyCostUsd": 0.0223,
+      "filmCostUsd": 0,
+      "otherCostUsd": 0.7085,
+      "totalCostUsd": 0.7308,
+      "totalTokens": 453078,
+      "estimated": false
+    }
+  ]
+}

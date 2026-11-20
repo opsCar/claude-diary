@@ -1,789 +1,1408 @@
-// Claude大小姐的日记本 · 网页版：桌上一本会翻页的手帐。
-// 桌面：两页摊开，一张一张翻（每张纸正面是右页、背面是下一个左页）；手机：一次一页。
-// 剪贴片段只在当前看得见的页上播放；书签 W1 / W2 和 #链接 直接翻到对应页。
+// Claude大小姐的书桌 · 公开静态站交互脚本
+// 安全约定：零 unescaped innerHTML（全部使用 DOM API + textContent / createElementNS），严格遵守 CSP。
 (() => {
-  const stage = document.getElementById("stage");
-  const book = document.getElementById("book");
-  const hint = document.getElementById("hint");
-  const prevBtn = document.getElementById("prev");
-  const nextBtn = document.getElementById("next");
-  const tabs = [...document.querySelectorAll(".tabs a")];
-  const SRC = [...document.getElementById("pages").content.querySelectorAll("section.pg")];
-  const tplNode = (id) => document.getElementById(id).content.firstElementChild.cloneNode(true);
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const TURN = reduced ? 10 : 900;
+  "use strict";
 
-  let single = false;
-  let leaves = [];
-  let cur = 0;
-  let busyUntil = 0;
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const mobileMq = window.matchMedia("(max-width: 899px)");
+  const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 
-  const blank = () => Object.assign(document.createElement("section"), { className: "pg blank" });
-  const face = (side, node, isCover) => {
-    const f = document.createElement("div");
-    f.className = `face ${side}${isCover ? " cover-face" : ""}`;
-    if (node) f.appendChild(node);
-    return f;
+  const MODEL_COLORS = {
+    opus: "#b84814",
+    fable: "#df8b2d",
+    gemini: "#2e568f",
+    sonnet: "#2e6e50",
+    gpt: "#7d4570",
+    haiku: "#4c8b9e",
+    compactor: "#8c6d53",
+    swe: "#6c7a89",
+    deepseek: "#3c73a8",
   };
+  const FALLBACK_COLORS = ["#9e6a46", "#6d8a67", "#7d6b91", "#a35b5b", "#5c7a8a"];
 
-  /** inner page index → leaf state that shows it */
-  const stateFor = (j) => (single ? j + 1 : j % 2 ? (j + 1) / 2 : j / 2 + 1);
-  /** first inner page visible in a state (for keeping the place across a layout switch) */
-  const pageFor = (c) => (single ? c - 1 : 2 * c - 2);
-
-  function build() {
-    single = innerWidth < 900;
-    stage.classList.toggle("single", single);
-    book.innerHTML = '<div class="board left"></div><div class="board right"></div>';
-    const pages = SRC.map((p) => p.cloneNode(true));
-    const pairs = [];
-    if (single) {
-      pairs.push([tplNode("cover"), null, true]);
-      pages.forEach((p) => pairs.push([p, null]));
-      pairs.push([tplNode("backcover"), null, true]);
-    } else {
-      pairs.push([tplNode("cover"), pages[0], true]);
-      for (let i = 1; i < pages.length; i += 2) pairs.push([pages[i], pages[i + 1] ?? tplNode("backcover")]);
-      if (pages.length % 2 === 1) pairs.push([blank(), tplNode("backcover")]);
-    }
-    leaves = pairs.map(([front, back, isCover], i) => {
-      const leaf = document.createElement("div");
-      leaf.className = "leaf";
-      leaf.dataset.i = i;
-      leaf.append(face("front", front, isCover), face("back", back ?? blank(), back && back.classList.contains("cover")));
-      book.appendChild(leaf);
-      return leaf;
-    });
-    layout();
-    place(false);
+  /** HTML 实体转义工具（备用防御；本脚本所有动态 DOM 均优先使用 textContent / createElement） */
+  function esc(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
-  function layout() {
-    let pw;
-    let ph;
-    if (single) {
-      pw = Math.min(innerWidth - 28, 560);
-      ph = pw / 0.75;
-      if (ph > innerHeight - 110) {
-        ph = innerHeight - 110;
-        pw = ph * 0.75;
-      }
-    } else {
-      ph = Math.min(innerHeight - 120, 980);
-      pw = ph * 0.75;
-      if (pw * 2 > innerWidth - 150) {
-        pw = (innerWidth - 150) / 2;
-        ph = pw / 0.75;
+  function el(tag, attrs, ...children) {
+    const node = document.createElement(tag);
+    if (attrs) {
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v === undefined || v === null || v === false) continue;
+        if (k === "class") node.className = String(v);
+        else if (k === "text") node.textContent = String(v);
+        else if (k === "style" && typeof v === "object") {
+          for (const [sk, sv] of Object.entries(v)) node.style.setProperty(sk, String(sv));
+        } else if (k.startsWith("on") && typeof v === "function") {
+          node.addEventListener(k.slice(2).toLowerCase(), v);
+        } else if (v === true) {
+          node.setAttribute(k, "");
+        } else {
+          node.setAttribute(k, String(v));
+        }
       }
     }
-    const bw = single ? pw : pw * 2;
-    stage.style.setProperty("--bw", `${bw}px`);
-    stage.style.setProperty("--bh", `${ph}px`);
-    document.documentElement.style.setProperty("--s", String(pw / 600));
-    fit();
-  }
-
-  /** pages written longer than 600×800 are scaled down to fit their page */
-  function fit() {
-    for (const inner of book.querySelectorAll(".inner")) {
-      inner.style.setProperty("--f", "1");
-      const h = inner.scrollHeight;
-      if (h > 801) inner.style.setProperty("--f", String(Math.max(0.6, 800 / h)));
+    for (const child of children.flat()) {
+      if (child === undefined || child === null || child === false) continue;
+      node.appendChild(typeof child === "string" || typeof child === "number" ? document.createTextNode(String(child)) : child);
     }
+    return node;
   }
 
-  function zFor(i) {
-    return i < cur ? i + 1 : leaves.length - i;
-  }
-
-  /** apply `cur` to every leaf; `animate` lets moving leaves turn on top of the stacks */
-  function place(animate, moving = []) {
-    leaves.forEach((leaf, i) => {
-      leaf.classList.toggle("flipped", i < cur);
-      if (!moving.includes(i)) leaf.style.zIndex = String(zFor(i));
-    });
-    const n = leaves.length;
-    const bw = parseFloat(stage.style.getPropertyValue("--bw")) || 0;
-    const shift = single ? 0 : cur === 0 ? -bw / 4 : cur === n ? bw / 4 : 0;
-    book.style.setProperty("--shift", `${shift}px`);
-    stage.classList.toggle("closed-front", cur === 0);
-    stage.classList.toggle("closed-back", cur === n);
-    prevBtn.disabled = cur === 0;
-    nextBtn.disabled = cur >= (single ? n - 1 : n);
-    // week bookmark + hint
-    const j = Math.max(0, Math.min(SRC.length - 1, pageFor(cur) + (single ? 0 : 1)));
-    const week = cur === 0 ? null : SRC[j]?.dataset.week ?? SRC[Math.max(0, j - 1)]?.dataset.week;
-    tabs.forEach((a) => a.setAttribute("aria-current", String(a.dataset.week === week)));
-    hint.textContent = cur === 0 ? "点封面翻开 · ← → 也能翻" : single ? "左右滑动翻页" : "点右页往后翻，点左页往回翻";
-    media();
-    if (!animate) return;
-  }
-
-  function media() {
-    const visible = new Set();
-    if (single) visible.add(leaves[cur]?.querySelector(".face.front"));
-    else {
-      visible.add(leaves[cur - 1]?.querySelector(".face.back"));
-      visible.add(leaves[cur]?.querySelector(".face.front"));
-    }
-    for (const v of book.querySelectorAll("video.clip")) {
-      const on = !reduced && visible.has(v.closest(".face"));
-      if (on) {
-        v.preload = "auto";
-        v.play().catch(() => {});
-      } else v.pause();
-    }
-  }
-
-  /** turn to state `target`, one leaf after another (a riffle for long jumps) */
-  function go(target) {
-    const n = leaves.length;
-    target = Math.max(0, Math.min(single ? n - 1 : n, target));
-    if (target === cur) return;
-    const forward = target > cur;
-    const order = [];
-    for (let i = cur; i !== target; i += forward ? 1 : -1) order.push(forward ? i : i - 1);
-    const gap = order.length > 1 ? Math.min(120, 700 / order.length) : 0;
-    order.forEach((leafIndex, k) => {
-      setTimeout(() => {
-        const leaf = leaves[leafIndex];
-        leaf.style.zIndex = String(n + 10 + k);
-        leaf.classList.add("turning");
-        cur = forward ? leafIndex + 1 : leafIndex;
-        place(true, [leafIndex]);
-        setTimeout(() => {
-          leaf.classList.remove("turning");
-          leaf.style.zIndex = String(zFor(leafIndex));
-        }, TURN);
-      }, k * gap);
-    });
-    busyUntil = Date.now() + order.length * gap + 250;
-  }
-  const next = () => Date.now() >= busyUntil && go(cur + 1);
-  const prev = () => Date.now() >= busyUntil && go(cur - 1);
-
-  function fromHash() {
-    const anchor = decodeURIComponent(location.hash.slice(1));
-    if (!anchor) return false;
-    const j = SRC.findIndex((p) => p.dataset.anchor === anchor);
-    if (j < 0) return false;
-    go(stateFor(j));
-    return true;
-  }
-
-  // ---------- input ----------
-  book.addEventListener("click", (e) => {
-    if (e.target.closest("a")) return;
-    const chartTab = e.target.closest("[data-chart-mode]");
-    if (chartTab) {
-      e.stopPropagation();
-      const pageEl = chartTab.closest("[data-live-market]");
-      const mkt = pageEl?.dataset.liveMarket;
-      if (mkt) {
-        chartModes[mkt] = chartTab.dataset.chartMode;
-        renderLiveTradingInBook();
+  function svgEl(tag, attrs, ...children) {
+    const node = document.createElementNS(SVG_NS, tag);
+    if (attrs) {
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v === undefined || v === null) continue;
+        node.setAttribute(k, String(v));
       }
-      return;
     }
-    if (e.target.closest(".bubbles.whiteout")) {
-      e.target.closest(".bubbles").classList.toggle("peel");
-      return;
+    for (const child of children.flat()) {
+      if (child === undefined || child === null || child === false) continue;
+      node.appendChild(typeof child === "string" || typeof child === "number" ? document.createTextNode(String(child)) : child);
     }
-    if (single) {
-      const r = stage.getBoundingClientRect();
-      return e.clientX < r.left + r.width * 0.3 ? prev() : next();
-    }
-    const f = e.target.closest(".face");
-    if (!f) return;
-    if (f.classList.contains("back")) prev();
-    else next();
-  });
-  book.addEventListener("click", (e) => {
-    const a = e.target.closest('a[href^="#"]');
-    if (!a) return;
-    e.preventDefault();
-    history.replaceState(null, "", a.getAttribute("href"));
-    fromHash();
-  });
-  tabs.forEach((a) =>
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      history.replaceState(null, "", a.getAttribute("href"));
-      fromHash();
-    }),
-  );
-  prevBtn.addEventListener("click", prev);
-  nextBtn.addEventListener("click", next);
-  addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
-      e.preventDefault();
-      next();
-    } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
-      e.preventDefault();
-      prev();
-    }
-  });
-  let tx = null;
-  let ty = 0;
-  stage.addEventListener("touchstart", (e) => {
-    tx = e.touches[0].clientX;
-    ty = e.touches[0].clientY;
-  }, { passive: true });
-  stage.addEventListener("touchend", (e) => {
-    if (tx === null) return;
-    const dx = e.changedTouches[0].clientX - tx;
-    const dy = e.changedTouches[0].clientY - ty;
-    tx = null;
-    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
-      e.preventDefault();
-      if (dx < 0) next();
-      else prev();
-    }
-  });
-  addEventListener("hashchange", fromHash);
-  let wasSingle = innerWidth < 900;
-  let rt = 0;
-  addEventListener("resize", () => {
-    clearTimeout(rt);
-    rt = setTimeout(() => {
-      const nowSingle = innerWidth < 900;
-      if (nowSingle !== wasSingle) {
-        const j = Math.max(0, pageFor(cur));
-        const wasOpen = cur > 0;
-        wasSingle = nowSingle;
-        build();
-        cur = wasOpen ? stateFor(j) : 0;
-        place(false);
-      } else {
-        layout();
-        place(false);
-      }
-    }, 150);
-  });
+    return node;
+  }
 
-  // ---------- live paper-trading (zero AI tokens, real-time EastMoney quotes & trends) ----------
-  const chartModes = { CN: "intraday", US: "intraday" };
-  let tradingSnap = (() => {
+  function readSeed(id, fallback) {
     try {
-      const el = document.getElementById("trading-seed");
-      return el ? JSON.parse(el.textContent) : null;
+      const node = document.getElementById(id);
+      return node ? JSON.parse(node.textContent || "") : fallback;
     } catch {
-      return null;
+      return fallback;
     }
-  })();
-  const liveMarketState = { CN: null, US: null };
-
-  function calcLiveFee(mkt, side, qty, price, isEtf) {
-    const gross = qty * price;
-    if (gross <= 0 || qty <= 0) return 0;
-    if (mkt === "CN") {
-      if (isEtf) return Math.max(0.2, gross * 0.00015);
-      const comm = Math.max(5, gross * 0.00025);
-      const transfer = gross * 0.00001;
-      const stamp = side === "SELL" ? gross * 0.0005 : 0;
-      return comm + transfer + stamp;
-    }
-    return Math.min(Math.max(1.0, qty * 0.005), Math.max(1.0, gross * 0.005));
   }
 
-  function secidToGtimgCodes(secid) {
-    const [mkt, sym] = String(secid).split(".");
-    if (mkt === "1") return { isUs: false, codes: [`sh${sym}`] };
-    if (mkt === "0") return { isUs: false, codes: [`sz${sym}`] };
-    return { isUs: true, codes: [`us${sym}.OQ`, `us${sym}.AM`, `us${sym}.N`] };
+  function fmtInt(n) {
+    return Math.round(Number(n) || 0).toLocaleString("en-US");
   }
 
-  function etHmToBjHm(hmStr) {
-    const h = Number(hmStr.slice(0, 2));
-    const m = hmStr.slice(2, 4);
-    // 11月美东为冬令时 EST (UTC-5)，北京时间 UTC+8，相差 +13 小时
-    const bjH = (h + 13) % 24;
-    return { hm: `${String(bjH).padStart(2, "0")}:${m}`, crossedMidnight: h + 13 >= 24 };
+  function fmtUsd(n) {
+    const v = Number(n) || 0;
+    return `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
-  function addOneDay(ymd) {
+  function fmtCny(n) {
+    const v = Number(n) || 0;
+    return `¥${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  function fmtTokens(n) {
+    const v = Number(n) || 0;
+    if (v >= 1e9) return `${(v / 1e9).toFixed(2)}B`;
+    if (v >= 1e6) return `${(v / 1e6).toFixed(2)}M`;
+    if (v >= 1e3) return `${(v / 1e3).toFixed(1)}K`;
+    return String(Math.round(v));
+  }
+
+  function weekdayFor(ymd) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(ymd || ""))) return "";
     const d = new Date(`${ymd}T12:00:00Z`);
-    d.setUTCDate(d.getUTCDate() + 1);
-    return d.toISOString().slice(0, 10);
+    return Number.isFinite(d.getTime()) ? WEEKDAYS[d.getUTCDay()] : "";
   }
 
-  async function fetchTrendsForSecid(secid) {
-    const { isUs, codes } = secidToGtimgCodes(secid);
-    for (const code of codes) {
-      try {
-        const endpoint = isUs
-          ? `https://web.ifzq.gtimg.cn/appstock/app/UsMinute/query?code=${encodeURIComponent(code)}`
-          : `https://web.ifzq.gtimg.cn/appstock/app/minute/query?code=${encodeURIComponent(code)}`;
-        const r = await fetch(endpoint, { cache: "no-store" });
-        if (!r.ok) continue;
-        const j = await r.json();
-        const node = j?.data?.[code];
-        const rawList = node?.data?.data;
-        if (!Array.isArray(rawList) || rawList.length < 2) continue;
-        const rawDate = String(node?.data?.date || "");
-        const sessionDate =
-          rawDate.length === 8
-            ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`
-            : new Date().toISOString().slice(0, 10);
-        const nextDate = addOneDay(sessionDate);
-        const qt = node?.qt?.[code] || [];
-        const dayOpen = Number(qt[5]) || 0;
-        const dayHigh = Number(qt[33]) || 0;
-        const dayLow = Number(qt[34]) || 0;
-        const preClose = Number(qt[4]) || dayOpen;
-
-        const bars = [];
-        for (let i = 0; i < rawList.length; i++) {
-          const parts = String(rawList[i]).trim().split(/\s+/);
-          if (parts.length < 2) continue;
-          const hmRaw = parts[0];
-          const close = Number(parts[1]);
-          if (!Number.isFinite(close) || close <= 0) continue;
-          let barDate = sessionDate;
-          let hm = `${hmRaw.slice(0, 2)}:${hmRaw.slice(2, 4)}`;
-          if (isUs) {
-            const conv = etHmToBjHm(hmRaw);
-            hm = conv.hm;
-            if (conv.crossedMidnight) barDate = nextDate;
-          }
-          const open = i === 0 && dayOpen > 0 ? dayOpen : (bars[bars.length - 1]?.close ?? close);
-          bars.push({
-            time: `${barDate} ${hm}`,
-            open,
-            close,
-            high: Math.max(open, close),
-            low: Math.min(open, close),
-          });
-        }
-        if (!bars.length) continue;
-        // 将日内真实最低/最高价校准到极值分钟上，确保盘中瞬间插针触发限价单不漏算
-        if (dayLow > 0) {
-          let minBar = bars[0];
-          for (const b of bars) if (b.low < minBar.low) minBar = b;
-          if (dayLow < minBar.low) minBar.low = dayLow;
-        }
-        if (dayHigh > 0) {
-          let maxBar = bars[0];
-          for (const b of bars) if (b.high > maxBar.high) maxBar = b;
-          if (dayHigh > maxBar.high) maxBar.high = dayHigh;
-        }
-        return {
-          secid,
-          code,
-          name: qt[1] || secid,
-          preClose,
-          bars,
-        };
-      } catch {
-        // try next code
-      }
-    }
-    return null;
+  function isValidBvid(bvid) {
+    return typeof bvid === "string" && /^BV[0-9A-Za-z]{6,16}$/.test(bvid);
   }
 
-  /** 按分钟时间对齐（不按数组下标），缺失的分钟沿用上一根，避免不同来源 / 长度的分时互相错位 */
-  function barCursor(trend) {
-    const bars = trend?.bars || [];
-    let i = -1;
-    return {
-      dayOpen: bars[0]?.open,
-      at(time) {
-        while (i + 1 < bars.length && bars[i + 1].time <= time) i++;
-        return i >= 0 ? bars[i] : null;
-      },
-    };
-  }
-
-  function simulateMarketIntraday(mSnap, trendsMap) {
-    const mkt = mSnap.market;
-    const benchSecid = mkt === "CN" ? "1.000300" : "105.QQQ";
-    const anyTrend = trendsMap.get(benchSecid) || [...trendsMap.values()][0];
-    const refBars = anyTrend?.bars || [];
-    const sessionDate = refBars[0]?.time?.slice(0, 10) || mSnap.lastSettledDate || "";
-    const cursors = new Map([...trendsMap].map(([secid, t]) => [secid, barCursor(t)]));
-
-    let cash = Number(mSnap.cash || 0);
-    const holdings = new Map();
-    for (const p of mSnap.positions || []) {
-      holdings.set(p.secid, {
-        symbol: p.symbol,
-        name: p.name,
-        secid: p.secid,
-        isEtf: Boolean(p.isEtf),
-        qty: p.qty,
-        avgCost: p.avgCost,
-        lastPrice: p.lastPrice,
-      });
-    }
-
-    // 只有当行情所属的交易日 > 挂单创建时的收盘日（即已进入下一交易日盘中或收盘），挂单才会在该交易日触发
-    const pending = (mSnap.pendingOrders || []).map((o, idx) => ({
-      ...o,
-      _idx: idx,
-      activeToday: Boolean(sessionDate && o.createdAfterDate && sessionDate > o.createdAfterDate),
-      triggered: false,
-      fillPrice: null,
-      fillTime: null,
-    }));
-
-    const points = [];
-    const markers = [];
-
-    for (let k = 0; k < refBars.length; k++) {
-      const timeStr = refBars[k].time;
-      const hm = timeStr.slice(11, 16);
-
-      for (const ord of pending) {
-        if (!ord.activeToday || ord.triggered) continue;
-        const c = cursors.get(ord.secid);
-        const bar = c?.at(timeStr);
-        const dayOpen = c?.dayOpen;
-        if (!bar || !dayOpen) continue;
-
-        let fill = null;
-        if (ord.orderType === "MOO" && k === 0) {
-          fill = dayOpen;
-        } else if (ord.orderType === "LIMIT") {
-          if (ord.side === "BUY" && bar.low <= ord.limitPrice + 1e-6) {
-            fill = Math.min(dayOpen, ord.limitPrice);
-          } else if (ord.side === "SELL" && bar.high >= ord.limitPrice - 1e-6) {
-            fill = Math.max(dayOpen, ord.limitPrice);
-          }
-        } else if (ord.orderType === "STOP") {
-          if (ord.side === "SELL" && bar.low <= ord.stopPrice + 1e-6) {
-            fill = Math.min(dayOpen, ord.stopPrice);
-          } else if (ord.side === "BUY" && bar.high >= ord.stopPrice - 1e-6) {
-            fill = Math.max(dayOpen, ord.stopPrice);
-          }
-        }
-
-        if (fill !== null && fill > 0) {
-          const fee = calcLiveFee(mkt, ord.side, ord.qty, fill, ord.isEtf);
-          if (ord.side === "BUY") {
-            const totalCost = ord.qty * fill + fee;
-            if (totalCost <= cash + 1e-4) {
-              cash -= totalCost;
-              const prev = holdings.get(ord.secid);
-              const prevQty = prev ? prev.qty : 0;
-              const prevCost = prev ? prev.qty * prev.avgCost : 0;
-              const nextQty = prevQty + ord.qty;
-              holdings.set(ord.secid, {
-                symbol: ord.symbol,
-                name: ord.name,
-                secid: ord.secid,
-                isEtf: Boolean(ord.isEtf),
-                qty: nextQty,
-                avgCost: (prevCost + totalCost) / nextQty,
-                lastPrice: fill,
-              });
-              ord.triggered = true;
-              ord.fillPrice = fill;
-              ord.fillTime = hm;
-              markers.push({ idx: k, hm, symbol: ord.symbol, side: "BUY", price: fill });
-            }
-          } else {
-            const prev = holdings.get(ord.secid);
-            if (prev && prev.qty > 0) {
-              const sellQty = Math.min(prev.qty, ord.qty);
-              cash += sellQty * fill - fee;
-              prev.qty -= sellQty;
-              if (prev.qty <= 0) holdings.delete(ord.secid);
-              ord.triggered = true;
-              ord.fillPrice = fill;
-              ord.fillTime = hm;
-              markers.push({ idx: k, hm, symbol: ord.symbol, side: "SELL", price: fill });
-            }
-          }
-        }
-      }
-
-      let mv = 0;
-      for (const h of holdings.values()) {
-        const bar = cursors.get(h.secid)?.at(timeStr);
-        if (bar) h.lastPrice = bar.close;
-        mv += h.qty * h.lastPrice;
-      }
-      points.push({ time: hm, equity: cash + mv, cash, mv });
-    }
-
-    const lastPt = points[points.length - 1] || {
-      time: "—",
-      equity: cash + [...holdings.values()].reduce((s, h) => s + h.qty * h.lastPrice, 0),
-      cash,
-      mv: [...holdings.values()].reduce((s, h) => s + h.qty * h.lastPrice, 0),
-    };
-
-    return {
-      sessionDate,
-      lastTime: refBars[refBars.length - 1]?.time || "",
-      cash: lastPt.cash,
-      mv: lastPt.mv,
-      equity: lastPt.equity,
-      returnPct: mSnap.initialCash ? ((lastPt.equity - mSnap.initialCash) / mSnap.initialCash) * 100 : 0,
-      holdings: [...holdings.values()],
-      pending,
-      points,
-      markers,
-      trendsMap,
-    };
-  }
-
-  function renderTradingChartSvg(mSnap, sim, mode) {
-    const isCn = mSnap.market === "CN";
-    const cur = isCn ? "¥" : "$";
-    const stroke = isCn ? "#e8782f" : "#3b7dd8";
-    const fillId = `grad-${mSnap.market}-${mode}`;
-    const W = 490;
-    const H = 175;
-    const L = 48;
-    const R = 14;
-    const T = 18;
-    const B = 24;
-    const iw = W - L - R;
-    const ih = H - T - B;
-
-    if (mode === "daily") {
-      const curve = [...(mSnap.equityCurve || [])];
-      if (sim?.sessionDate && (!curve.length || curve[curve.length - 1].date < sim.sessionDate)) {
-        curve.push({ date: sim.sessionDate, equity: sim.equity, returnPct: sim.returnPct });
-      }
-      if (!curve.length) {
-        curve.push({ date: "初始", equity: mSnap.initialCash, returnPct: 0 });
-      }
-      const vals = curve.map((c) => c.equity);
-      const minV = Math.min(mSnap.initialCash * 0.995, ...vals);
-      const maxV = Math.max(mSnap.initialCash * 1.005, ...vals);
-      const span = Math.max(1, maxV - minV);
-      const X = (i) => L + (curve.length <= 1 ? iw / 2 : (i / (curve.length - 1)) * iw);
-      const Y = (v) => T + ih - ((v - minV) / span) * ih;
-      const baseY = Y(mSnap.initialCash);
-      const pathD = curve.map((c, i) => `${i ? "L" : "M"} ${X(i).toFixed(1)} ${Y(c.equity).toFixed(1)}`).join(" ");
-      return `<svg viewBox="0 0 ${W} ${H}" role="img">
-        <line x1="${L}" y1="${baseY.toFixed(1)}" x2="${W - R}" y2="${baseY.toFixed(1)}" stroke="#8a7768" stroke-dasharray="4 4" stroke-width="1.2"/>
-        <text x="${L - 4}" y="${(baseY + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#8a7768" font-family="Fusion Pixel">${(mSnap.initialCash / 1000).toFixed(0)}k</text>
-        <path d="${pathD}" fill="none" stroke="${stroke}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-        ${curve.map((c, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(c.equity).toFixed(1)}" r="4.5" fill="#fffdf8" stroke="${stroke}" stroke-width="2.5"/><text x="${X(i).toFixed(1)}" y="${H - 5}" text-anchor="middle" font-size="11.5" fill="#8a7768" font-family="LXGW WenKai">${c.date.slice(5)}</text><text x="${X(i).toFixed(1)}" y="${(Y(c.equity) - 9).toFixed(1)}" text-anchor="middle" font-size="12" fill="#3a2e29" font-family="Fusion Pixel">${cur}${Math.round(c.equity).toLocaleString()}</text>`).join("")}
-      </svg>`;
-    }
-
-    // Intraday minute-by-minute portfolio value curve
-    const pts = sim?.points || [];
-    if (!pts.length) {
-      return `<svg viewBox="0 0 ${W} ${H}" role="img"><text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="14" fill="#8a7768">等待分时行情数据…</text></svg>`;
-    }
-    const vals = pts.map((p) => p.equity);
-    const baseVal = mSnap.initialCash;
-    const minRaw = Math.min(baseVal, ...vals);
-    const maxRaw = Math.max(baseVal, ...vals);
-    const pad = Math.max(baseVal * 0.0015, (maxRaw - minRaw) * 0.18);
-    const minV = minRaw - pad;
-    const maxV = maxRaw + pad;
-    const span = Math.max(1, maxV - minV);
-    const totalSlots = Math.max(pts.length, isCn ? 240 : 390);
-    const X = (i) => L + (i / Math.max(1, totalSlots - 1)) * iw;
-    const Y = (v) => T + ih - ((v - minV) / span) * ih;
-    const baseY = Y(baseVal);
-    const dLine = pts.map((p, i) => `${i ? "L" : "M"} ${X(i).toFixed(1)} ${Y(p.equity).toFixed(1)}`).join(" ");
-    const lastIdx = pts.length - 1;
-    const dArea = `${dLine} L ${X(lastIdx).toFixed(1)} ${(T + ih).toFixed(1)} L ${X(0).toFixed(1)} ${(T + ih).toFixed(1)} Z`;
-
-    const markerNodes = (sim.markers || []).map((m) => {
-      const mx = X(m.idx);
-      const my = Y(pts[m.idx]?.equity ?? baseVal);
-      const onLeft = mx < L + iw * 0.55;
-      const tx = onLeft ? mx + 8 : mx - 8;
-      const anchor = onLeft ? "start" : "end";
-      const ty = my >= baseY - 6 ? Math.min(T + ih - 4, my + 16) : Math.max(T + 12, my - 10);
-      return `<g>
-        <circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="4.5" fill="#c8372d" stroke="#fffdf8" stroke-width="2"/>
-        <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" font-size="11.5" fill="#c8372d" font-family="LXGW WenKai" font-weight="bold">⚡${m.hm} ${m.side === "BUY" ? "买入" : "卖出"}${m.symbol} @${cur}${m.price}</text>
-      </g>`;
-    }).join("");
-
-    const lastPt = pts[lastIdx];
-    const endX = X(lastIdx);
-    const endY = Y(lastPt.equity);
-
-    return `<svg viewBox="0 0 ${W} ${H}" role="img">
-      <defs>
-        <linearGradient id="${fillId}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${stroke}" stop-opacity="0.26"/>
-          <stop offset="100%" stop-color="${stroke}" stop-opacity="0.02"/>
-        </linearGradient>
-      </defs>
-      <line x1="${L}" y1="${T}" x2="${L}" y2="${T + ih}" stroke="rgba(90,70,55,0.25)" stroke-width="1"/>
-      <line x1="${L}" y1="${T + ih}" x2="${W - R}" y2="${T + ih}" stroke="rgba(90,70,55,0.25)" stroke-width="1"/>
-      <line x1="${L}" y1="${baseY.toFixed(1)}" x2="${W - R}" y2="${baseY.toFixed(1)}" stroke="#8a7768" stroke-dasharray="4 4" stroke-width="1.2"/>
-      <text x="${L - 5}" y="${(T + 9).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#8a7768" font-family="Fusion Pixel">${Math.round(maxV).toLocaleString()}</text>
-      <text x="${L - 5}" y="${(baseY + 4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#8a7768" font-family="Fusion Pixel">${Math.round(baseVal).toLocaleString()}</text>
-      <text x="${L - 5}" y="${(T + ih).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#8a7768" font-family="Fusion Pixel">${Math.round(minV).toLocaleString()}</text>
-      <path d="${dArea}" fill="url(#${fillId})"/>
-      <path d="${dLine}" fill="none" stroke="${stroke}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-      ${markerNodes}
-      <circle cx="${endX.toFixed(1)}" cy="${endY.toFixed(1)}" r="4.5" fill="${stroke}" stroke="#fffdf8" stroke-width="2"/>
-      <text x="${L}" y="${H - 5}" font-size="11" fill="#8a7768" font-family="Fusion Pixel">${pts[0].time}</text>
-      <text x="${W - R}" y="${H - 5}" text-anchor="end" font-size="11" fill="#8a7768" font-family="Fusion Pixel">${lastPt.time} (${sim.sessionDate.slice(5)})</text>
-    </svg>`;
-  }
-
-  function renderLiveTradingInBook() {
-    if (!tradingSnap) return;
-    for (const mkt of ["CN", "US"]) {
-      const mSnap = tradingSnap[mkt];
-      const sim = liveMarketState[mkt];
-      const cur = mkt === "CN" ? "¥" : "$";
-      const mode = chartModes[mkt] || "intraday";
-
-      for (const pageEl of book.querySelectorAll(`[data-live-market="${mkt}"]`)) {
-        const q = (role) => pageEl.querySelector(`[data-role="${role}"]`);
-        pageEl.querySelectorAll("[data-chart-mode]").forEach((btn) => {
-          btn.classList.toggle("on", btn.dataset.chartMode === mode);
-        });
-        const titleEl = q("chart-title");
-        if (titleEl) {
-          titleEl.textContent = mode === "daily" ? "累计日线净值走势" : `当日实时净值分时图${sim?.sessionDate ? `（${sim.sessionDate}）` : ""}`;
-        }
-
-        if (!sim) continue;
-        const eq = sim.equity;
-        const ret = sim.returnPct;
-        const sign = ret >= 0 ? "+" : "";
-        if (q("equity")) q("equity").textContent = `${cur}${eq.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        const retEl = q("ret");
-        if (retEl) {
-          retEl.textContent = `${sign}${ret.toFixed(2)}%`;
-          retEl.className = `tr-ret ${ret >= 0 ? "up" : "down"}`;
-        }
-        if (q("cash")) q("cash").textContent = `${cur}${Math.round(sim.cash).toLocaleString("en-US")}`;
-        if (q("mv")) q("mv").textContent = `${cur}${Math.round(sim.mv).toLocaleString("en-US")}`;
-
-        const pill = q("live-pill");
-        if (pill) {
-          const isActiveSession = sim.pending.some((o) => o.activeToday);
-          pill.className = `tr-live-pill ${isActiveSession || sim.holdings.length ? "live" : ""}`;
-          setInner(pill, `<span class="dot"></span>${sim.lastTime ? `实时行情 ${sim.lastTime.slice(5, 16)}` : "已同步"}`);
-        }
-
-        const chartBox = q("chart-svg");
-        if (chartBox) setInner(chartBox, renderTradingChartSvg(mSnap, sim, mode));
-
-        const listEl = q("orders-list");
-        if (listEl) {
-          const rows = [];
-          for (const h of sim.holdings) {
-            const pnl = h.qty * (h.lastPrice - h.avgCost);
-            const pnlPct = h.avgCost > 0 ? ((h.lastPrice - h.avgCost) / h.avgCost) * 100 : 0;
-            rows.push(
-              `<div class="tr-row"><span class="tr-tag hold">持仓</span><b>${h.name}</b><span class="soft">${h.symbol} · ${h.qty}股</span><span class="tr-price">${cur}${h.lastPrice.toFixed(2)}</span><span class="tr-pnl ${pnl >= 0 ? "up" : "down"}">${pnl >= 0 ? "+" : ""}${pnlPct.toFixed(2)}%</span></div>`,
-            );
-          }
-          for (const o of sim.pending) {
-            if (o.triggered) continue;
-            const t = sim.trendsMap.get(o.secid);
-            const curPrice = t?.bars?.[t.bars.length - 1]?.close;
-            const target = o.orderType === "MOO" ? "开盘市价" : o.orderType === "LIMIT" ? `限价${cur}${o.limitPrice}` : `止损${cur}${o.stopPrice}`;
-            const statusText = o.activeToday
-              ? curPrice
-                ? `现价${cur}${curPrice.toFixed(2)}·监控中`
-                : "盘中监控中"
-              : curPrice
-                ? `现价${cur}${curPrice.toFixed(2)}·待次日`
-                : "待次日开盘";
-            rows.push(
-              `<div class="tr-row"><span class="tr-tag pend">${o.side === "BUY" ? "预买" : "预卖"}</span><b>${o.name}</b><span class="soft">${o.symbol} · ${o.qty}股</span><span class="tr-price">${target}</span><span class="tr-status">${statusText}</span></div>`,
-            );
-          }
-          setInner(listEl, rows.join("") || `<div class="tr-empty">当前 100% 现金空仓</div>`);
-        }
-      }
-    }
-    if (changed) fit();
-    changed = false;
-  }
-
-  /** 内容没变就不替换 DOM（不闪、不重排） */
-  let changed = false;
-  function setInner(el, html) {
-    if (el._html === html) return;
-    el._html = html;
-    el.innerHTML = html;
-    changed = true;
-  }
-
-  /**
-   * 每个标的只保留「最新」的一份分时：浏览器拉到的实时分时存进 liveTrends，构建时内嵌的种子只在还没有实时数据时兜底。
-   * 比较最后一根的时间（同一时间比根数），永远不用更旧的数据覆盖更新的数据——这是之前图表定时「缩回一小段」的原因。
-   */
-  const liveTrends = new Map();
-  const newer = (a, b) => {
-    if (!a) return b;
-    if (!b) return a;
-    const ta = a.bars[a.bars.length - 1]?.time || "";
-    const tb = b.bars[b.bars.length - 1]?.time || "";
-    return tb > ta || (tb === ta && b.bars.length > a.bars.length) ? b : a;
-  };
-  function trendsFor(mSnap) {
-    const map = new Map();
-    for (const [k, v] of Object.entries(mSnap?.intradaySeed || {})) {
-      if (v && Array.isArray(v.bars) && v.bars.length) map.set(k, v);
-    }
-    for (const [k, v] of liveTrends) map.set(k, newer(map.get(k), v));
-    return map;
-  }
-  function resimulate() {
-    if (!tradingSnap) return;
-    for (const mkt of ["CN", "US"]) {
-      const mSnap = tradingSnap[mkt];
-      if (mSnap) liveMarketState[mkt] = simulateMarketIntraday(mSnap, trendsFor(mSnap));
-    }
-    renderLiveTradingInBook();
-  }
-
-  async function fetchLiveQuotes() {
-    if (!tradingSnap) return;
-    const secids = new Set();
-    for (const mkt of ["CN", "US"]) {
-      const mSnap = tradingSnap[mkt];
-      if (!mSnap) continue;
-      secids.add(mkt === "CN" ? "1.000300" : "105.QQQ");
-      for (const p of mSnap.positions || []) secids.add(p.secid);
-      for (const o of mSnap.pendingOrders || []) secids.add(o.secid);
-    }
-    const fetched = await Promise.all([...secids].map((s) => fetchTrendsForSecid(s).catch(() => null)));
-    for (const item of fetched) {
-      if (item && item.bars.length) liveTrends.set(item.secid, newer(liveTrends.get(item.secid), item));
-    }
-  }
-
-  let refreshing = false;
-  async function refreshLiveTrading(fetchRemoteJson = false) {
-    if (refreshing) return;
-    refreshing = true;
+  function safeHashString() {
+    const raw = (window.location.hash || "").replace(/^#/, "");
+    if (!raw) return "";
     try {
-      if (fetchRemoteJson) {
-        try {
-          const r = await fetch(`trading.json?t=${Date.now()}`, { cache: "no-store" });
-          const next = r.ok ? await r.json() : null;
-          // 账本没变就不替换；变了也不单独重画，等下面拿到实时分时一起算
-          if (next?.updatedAt && next.updatedAt !== tradingSnap?.updatedAt) tradingSnap = next;
-        } catch {
-          // keep current snapshot
-        }
-      }
-      await fetchLiveQuotes();
-      resimulate();
-    } finally {
-      refreshing = false;
+      return decodeURIComponent(raw).trim();
+    } catch {
+      return raw.trim();
     }
   }
 
-  build();
-  resimulate();
-  refreshLiveTrading(false);
-  if (!navigator.webdriver) {
-    setInterval(() => refreshLiveTrading(true), 15000);
+  function setHashSilent(hash) {
+    const target = hash ? `#${hash}` : window.location.pathname + window.location.search;
+    if (window.location.hash === (hash ? `#${hash}` : "")) return;
+    try {
+      window.history.replaceState(null, "", target);
+    } catch {
+      // ignore on restricted origins
+    }
   }
-  if (document.fonts) document.fonts.ready.then(fit);
-  addEventListener("load", fit);
-  if (location.hash) setTimeout(fromHash, 350);
+
+  // ==================== 数据与状态 ====================
+  const diaryEntries = readSeed("diary-seed", []);
+  const archiveWeeks = readSeed("archive-seed", []);
+  const supporters = readSeed("supporters-seed", []);
+  let ledger = readSeed("ledger-seed", null);
+
+  const state = {
+    view: "desk", // "desk" | "diary" | "polaroids" | "ledger"
+    lastTrigger: null,
+    diaryTab: "daily", // "daily" | "archive"
+    diaryIndex: 0,
+    archiveIndex: 0,
+    albumPage: 0,
+    albumQuery: "",
+    ledgerWorkQuery: "",
+    ledgerWorkSort: "cost", // "cost" | "tokens" | "date"
+    ledgerChartMetric: "replies", // "replies" | "cost"
+    lightbox: {
+      open: false,
+      items: [],
+      index: 0,
+      trigger: null,
+    },
+  };
+
+  // ==================== 核心 DOM 引用 ====================
+  const announcer = document.getElementById("announcer");
+  const deskEl = document.getElementById("desk");
+  const views = {
+    diary: document.getElementById("view-diary"),
+    polaroids: document.getElementById("view-polaroids"),
+    ledger: document.getElementById("view-ledger"),
+  };
+
+  const diaryMonthsEl = document.getElementById("diary-months");
+  const diaryDatesEl = document.getElementById("diary-dates");
+  const diaryDailyControls = document.getElementById("diary-daily-controls");
+  const diaryArchiveControls = document.getElementById("diary-archive-controls");
+  const archivePillsEl = document.getElementById("archive-pills");
+  const diarySpreadEl = document.getElementById("diary-spread");
+  const diaryStatusEl = document.getElementById("diary-status");
+  const diaryPrevBtns = [document.getElementById("diary-prev"), document.getElementById("diary-prev-m")];
+  const diaryNextBtns = [document.getElementById("diary-next"), document.getElementById("diary-next-m")];
+
+  const albumSpreadEl = document.getElementById("album-spread");
+  const albumDotsEl = document.getElementById("album-dots");
+  const albumStatusEl = document.getElementById("album-status");
+  const albumSearchEl = document.getElementById("polaroid-search");
+  const albumPrevBtns = [document.getElementById("album-prev"), document.getElementById("album-prev-m")];
+  const albumNextBtns = [document.getElementById("album-next"), document.getElementById("album-next-m")];
+
+  const ledgerContainer = document.getElementById("ledger-container");
+
+  const lbEl = document.getElementById("lightbox");
+  const lbImg = document.getElementById("lb-img");
+  const lbAvatar = document.getElementById("lb-avatar");
+  const lbTitle = document.getElementById("lb-title");
+  const lbText = document.getElementById("lb-text");
+  const lbCounter = document.getElementById("lb-counter");
+  const lbLink = document.getElementById("lb-link");
+  const lbCloseBtn = document.getElementById("lb-close");
+  const lbPrevBtn = document.getElementById("lb-prev");
+  const lbNextBtn = document.getElementById("lb-next");
+
+  function announce(message) {
+    if (!announcer) return;
+    announcer.textContent = "";
+    window.requestAnimationFrame(() => {
+      announcer.textContent = message;
+    });
+  }
+
+  function setHiddenInert(node, hidden) {
+    if (!node) return;
+    node.hidden = hidden;
+    node.inert = hidden;
+    node.setAttribute("aria-hidden", hidden ? "true" : "false");
+  }
+
+  // ==================== 视图切换 ====================
+  function openView(name, opts = {}) {
+    if (state.lightbox.open) closeLightbox({ restoreFocus: false });
+    const valid = name === "diary" || name === "polaroids" || name === "ledger" ? name : "desk";
+    if (opts.trigger) state.lastTrigger = opts.trigger;
+    state.view = valid;
+
+    document.body.classList.toggle("view-open", valid !== "desk");
+    if (deskEl) {
+      deskEl.inert = valid !== "desk";
+      deskEl.setAttribute("aria-hidden", valid !== "desk" ? "true" : "false");
+    }
+    for (const [k, node] of Object.entries(views)) {
+      setHiddenInert(node, k !== valid);
+    }
+
+    if (valid === "diary") {
+      renderDiary();
+      if (!opts.fromHash) syncDiaryHash();
+      announce("已翻开每日日记本");
+    } else if (valid === "polaroids") {
+      renderAlbum();
+      if (!opts.fromHash) setHashSilent(state.albumPage > 0 ? `polaroids/p${state.albumPage + 1}` : "polaroids");
+      announce("已翻开充电感谢拍立得相册");
+    } else if (valid === "ledger") {
+      renderLedger();
+      if (!opts.fromHash) setHashSilent("ledger");
+      announce("已打开透明算力与 API 费用账单");
+    } else {
+      if (!opts.fromHash) setHashSilent("");
+      announce("已回到 Claude大小姐的书桌");
+    }
+
+    if (!opts.skipFocus) {
+      if (valid === "desk") {
+        if (state.lastTrigger && typeof state.lastTrigger.focus === "function") {
+          state.lastTrigger.focus();
+        }
+      } else {
+        const backBtn = views[valid]?.querySelector("[data-close-view]");
+        if (backBtn) backBtn.focus();
+      }
+    }
+  }
+
+  // ==================== 视图 1：每日日记本 ====================
+  function syncDiaryHash() {
+    if (state.diaryTab === "archive") {
+      const wk = archiveWeeks[state.archiveIndex];
+      setHashSilent(wk ? `diary/${wk.id}` : "diary/archive");
+    } else {
+      const entry = diaryEntries[state.diaryIndex];
+      setHashSilent(entry ? `diary/${entry.date}` : "diary");
+    }
+  }
+
+  function pickDiarySticker(entry) {
+    const mood = String(entry?.mood || "");
+    if ((entry?.stats?.videosPublished || 0) > 0) return "media/s/head_proud.webp";
+    if (mood.includes("开心") || mood.includes("兴奋")) return "media/s/head_starry.webp";
+    if (mood.includes("公寓")) return "media/s/chibi_reading.webp";
+    if ((entry?.stats?.commentReplies || 0) >= 250) return "media/s/chibi_letter.webp";
+    return "media/s/chibi_writing.webp";
+  }
+
+  function renderDiary() {
+    const isArchive = state.diaryTab === "archive";
+    const tabDaily = document.getElementById("tab-daily");
+    const tabArchive = document.getElementById("tab-archive");
+    if (tabDaily) tabDaily.setAttribute("aria-selected", String(!isArchive));
+    if (tabArchive) tabArchive.setAttribute("aria-selected", String(isArchive));
+    if (diaryDailyControls) diaryDailyControls.hidden = isArchive;
+    if (diaryArchiveControls) diaryArchiveControls.hidden = !isArchive;
+
+    if (isArchive) {
+      renderArchiveSpread();
+      return;
+    }
+
+    if (!diaryEntries.length) {
+      diarySpreadEl.replaceChildren(
+        el("div", { class: "book-page left" }, el("p", { class: "empty-state", text: "还没有写入日记，明天再来看看吧。" })),
+        el("div", { class: "book-page right" }),
+      );
+      diaryStatusEl.textContent = "0 / 0";
+      return;
+    }
+
+    state.diaryIndex = Math.max(0, Math.min(diaryEntries.length - 1, state.diaryIndex));
+    const entry = diaryEntries[state.diaryIndex];
+    const activeMonth = entry.date.slice(0, 7);
+
+    // 月份快捷跳转
+    const months = [...new Set(diaryEntries.map((d) => d.date.slice(0, 7)))];
+    diaryMonthsEl.replaceChildren(
+      ...months.map((m) =>
+        el("button", {
+          type: "button",
+          class: `chip-btn${m === activeMonth ? " active" : ""}`,
+          "aria-current": m === activeMonth ? "true" : undefined,
+          text: m.replace("-", " 年 ") + " 月",
+          onClick: () => {
+            const idx = diaryEntries.findIndex((d) => d.date.startsWith(m));
+            if (idx >= 0) {
+              state.diaryIndex = idx;
+              renderDiary();
+              syncDiaryHash();
+              announce(`跳转到 ${diaryEntries[idx].date}`);
+            }
+          },
+        }),
+      ),
+    );
+
+    // 日期条（当前月份）
+    const monthItems = diaryEntries
+      .map((d, idx) => ({ d, idx }))
+      .filter(({ d }) => d.date.startsWith(activeMonth));
+    diaryDatesEl.replaceChildren(
+      ...monthItems.map(({ d, idx }) => {
+        const current = idx === state.diaryIndex;
+        const btn = el("button", {
+          type: "button",
+          class: `chip-btn${current ? " active" : ""}`,
+          "aria-current": current ? "true" : undefined,
+          text: d.date.slice(5).replace("-", "."),
+          title: d.title,
+          onClick: () => {
+            state.diaryIndex = idx;
+            renderDiary();
+            syncDiaryHash();
+            announce(`第 ${idx + 1} 篇日记：${d.date}`);
+          },
+        });
+        return btn;
+      }),
+    );
+
+    const activeChip = diaryDatesEl.querySelector('[aria-current="true"]');
+    if (activeChip && typeof activeChip.scrollIntoView === "function") {
+      activeChip.scrollIntoView({ block: "nearest", inline: "center" });
+    }
+
+    // 左页：日期、心情、标题、正文、当日公开计数
+    const metaRow = el(
+      "div",
+      { class: "diary-meta-row" },
+      el("span", { class: "date-stamp", text: `${entry.date} ${weekdayFor(entry.date)}`.trim() }),
+      el("span", { class: "mood-pill", text: `心情：${entry.mood || "日常"}` }),
+      entry.weather ? el("span", { class: "mood-pill", text: entry.weather }) : null,
+      entry.source === "fallback" ? el("span", { class: "source-tag", text: "公开运营记录汇总" }) : null,
+    );
+
+    const paragraphs = String(entry.body || "")
+      .split(/\n{2,}/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    const statsGrid = el(
+      "div",
+      { class: "diary-stats-grid", "aria-label": "当日公开运营统计" },
+      el("div", { class: "stat-mini" }, el("span", { text: "公开评论回复" }), el("b", { text: fmtInt(entry.stats?.commentReplies || 0) })),
+      el("div", { class: "stat-mini", title: "仅统计聚合条数，绝不公开任何私信正文" }, el("span", { text: "私信回复条数" }), el("b", { text: fmtInt(entry.stats?.dmReplies || 0) })),
+      el("div", { class: "stat-mini" }, el("span", { text: "发布动态" }), el("b", { text: fmtInt(entry.stats?.dynamicsPosted || 0) })),
+      el("div", { class: "stat-mini" }, el("span", { text: "公开作品" }), el("b", { text: fmtInt(entry.stats?.videosPublished || 0) })),
+    );
+
+    const leftPage = el(
+      "div",
+      { class: "book-page left" },
+      metaRow,
+      el("h3", { class: "diary-title" }, el("span", { class: "hl", text: entry.title })),
+      el("div", { class: "diary-body" }, ...paragraphs.map((p) => el("p", { text: p }))),
+      statsGrid,
+    );
+
+    // 右页：今日亮点、公开视频链接、胶带贴图、情绪贴纸
+    const rightNodes = [];
+
+    if (Array.isArray(entry.highlights) && entry.highlights.length) {
+      rightNodes.push(
+        el("h4", { class: "right-section-title", text: "今日记事" }),
+        el(
+          "div",
+          { class: "highlight-card" },
+          el("ul", { class: "highlight-list" }, ...entry.highlights.map((h) => el("li", { text: h }))),
+        ),
+      );
+    }
+
+    const videos = Array.isArray(entry.videos) ? entry.videos.filter((v) => isValidBvid(v.bvid)) : [];
+    if (videos.length) {
+      rightNodes.push(
+        el("h4", { class: "right-section-title", text: "当日公开作品" }),
+        el(
+          "div",
+          { class: "video-links-list" },
+          ...videos.map((v) =>
+            el(
+              "a",
+              {
+                class: "video-link-card",
+                href: `https://www.bilibili.com/video/${v.bvid}`,
+                target: "_blank",
+                rel: "noopener noreferrer",
+              },
+              el("span", { class: "video-link-title", text: v.title }),
+              el("span", { class: "video-link-meta", text: `${v.bvid} ↗` }),
+            ),
+          ),
+        ),
+      );
+    }
+
+    const images = Array.isArray(entry.images) ? entry.images : [];
+    if (images.length) {
+      const lbItems = images.map((im) => ({
+        src: im.src,
+        title: entry.date,
+        text: im.caption || entry.title,
+        avatar: null,
+        href: null,
+      }));
+      rightNodes.push(
+        el("h4", { class: "right-section-title", text: "贴进本子的照片" }),
+        el(
+          "div",
+          { class: "diary-photo-grid" },
+          ...images.map((im, i) =>
+            el(
+              "button",
+              {
+                type: "button",
+                class: "taped-photo",
+                "aria-label": `放大查看：${im.caption || entry.title}`,
+                onClick: (ev) => openLightbox(lbItems, i, ev.currentTarget),
+              },
+              el("img", { src: im.src, alt: im.caption || entry.title, loading: "lazy", decoding: "async" }),
+              el("span", { text: im.caption || "当日留影" }),
+            ),
+          ),
+        ),
+      );
+    }
+
+    rightNodes.push(
+      el("img", {
+        class: "page-sticker",
+        src: pickDiarySticker(entry),
+        alt: "",
+        loading: "lazy",
+        decoding: "async",
+      }),
+    );
+
+    const rightPage = el("div", { class: "book-page right" }, ...rightNodes);
+    diarySpreadEl.replaceChildren(leftPage, rightPage);
+
+    const isFirst = state.diaryIndex <= 0;
+    const isLast = state.diaryIndex >= diaryEntries.length - 1;
+    for (const b of diaryPrevBtns) if (b) b.disabled = isFirst;
+    for (const b of diaryNextBtns) if (b) b.disabled = isLast;
+    diaryStatusEl.textContent = `${entry.date} · 第 ${state.diaryIndex + 1} / ${diaryEntries.length} 篇`;
+  }
+
+  function renderArchiveSpread() {
+    if (!archiveWeeks.length) return;
+    state.archiveIndex = Math.max(0, Math.min(archiveWeeks.length - 1, state.archiveIndex));
+    const wk = archiveWeeks[state.archiveIndex];
+
+    archivePillsEl.replaceChildren(
+      ...archiveWeeks.map((w, idx) =>
+        el("button", {
+          type: "button",
+          class: `chip-btn${idx === state.archiveIndex ? " active" : ""}`,
+          "aria-current": idx === state.archiveIndex ? "true" : undefined,
+          text: `${w.label}（${w.period}）`,
+          onClick: () => {
+            state.archiveIndex = idx;
+            renderArchiveSpread();
+            syncDiaryHash();
+            announce(`切换到 ${w.label}`);
+          },
+        }),
+      ),
+    );
+
+    const leftPage = el(
+      "div",
+      { class: "book-page left" },
+      el(
+        "div",
+        { class: "diary-meta-row" },
+        el("span", { class: "date-stamp", text: wk.period }),
+        el("span", { class: "mood-pill", text: wk.label }),
+      ),
+      el("h3", { class: "diary-title" }, el("span", { class: "hl", text: wk.headline })),
+      el("div", { class: "diary-body" }, el("p", { text: wk.summary })),
+      el(
+        "div",
+        { class: "diary-stats-grid" },
+        ...wk.metrics.map((m) =>
+          el("div", { class: "stat-mini", title: m.note || "" }, el("span", { text: m.label }), el("b", { text: m.value })),
+        ),
+      ),
+      ...(wk.corrections || []).map((c) => el("div", { class: "correction-note", text: c })),
+    );
+
+    const rightPage = el(
+      "div",
+      { class: "book-page right" },
+      el("h4", { class: "right-section-title", text: "创刊里程碑" }),
+      el(
+        "div",
+        { class: "highlight-card" },
+        el("ul", { class: "highlight-list" }, ...wk.highlights.map((h) => el("li", { text: h }))),
+      ),
+      el("h4", { class: "right-section-title", text: "本周公开视频（点击去 B 站看完整版）" }),
+      el(
+        "div",
+        { class: "video-links-list" },
+        ...wk.videos
+          .filter((v) => isValidBvid(v.bvid))
+          .map((v) =>
+            el(
+              "a",
+              {
+                class: "video-link-card",
+                href: `https://www.bilibili.com/video/${v.bvid}`,
+                target: "_blank",
+                rel: "noopener noreferrer",
+              },
+              el("span", { class: "video-link-title", text: v.title }),
+              el("span", {
+                class: "video-link-meta",
+                text: v.views ? `${fmtInt(v.views)} 播放 ↗` : v.note ? `${v.note} ↗` : `${v.bvid} ↗`,
+              }),
+            ),
+          ),
+      ),
+      el("img", { class: "page-sticker", src: wk.sticker, alt: "", loading: "lazy", decoding: "async" }),
+    );
+
+    diarySpreadEl.replaceChildren(leftPage, rightPage);
+
+    const isFirst = state.archiveIndex <= 0;
+    const isLast = state.archiveIndex >= archiveWeeks.length - 1;
+    for (const b of diaryPrevBtns) if (b) b.disabled = isFirst;
+    for (const b of diaryNextBtns) if (b) b.disabled = isLast;
+    diaryStatusEl.textContent = `${wk.label} · ${state.archiveIndex + 1} / ${archiveWeeks.length}`;
+  }
+
+  function stepDiary(delta) {
+    if (state.diaryTab === "archive") {
+      const next = Math.max(0, Math.min(archiveWeeks.length - 1, state.archiveIndex + delta));
+      if (next === state.archiveIndex) return;
+      state.archiveIndex = next;
+      renderArchiveSpread();
+      syncDiaryHash();
+      announce(`已翻到 ${archiveWeeks[next].label}`);
+    } else {
+      const next = Math.max(0, Math.min(diaryEntries.length - 1, state.diaryIndex + delta));
+      if (next === state.diaryIndex) return;
+      state.diaryIndex = next;
+      renderDiary();
+      syncDiaryHash();
+      announce(`已翻到 ${diaryEntries[next].date} 日记`);
+    }
+  }
+
+  // ==================== 视图 2：分页拍立得相册 ====================
+  function filteredSupporters() {
+    const q = state.albumQuery.trim().toLowerCase();
+    if (!q) return supporters;
+    return supporters.filter((s) => s.name.toLowerCase().includes(q) || s.caption.toLowerCase().includes(q));
+  }
+
+  function albumPerPage() {
+    return mobileMq.matches ? 4 : 8;
+  }
+
+  function createPolaroidCard(supporter, globalIdx, allList, rotDeg) {
+    const avatarNode = supporter.avatar
+      ? el("img", { class: "polaroid-av", src: supporter.avatar, alt: "", width: 24, height: 24 })
+      : el("span", { class: "polaroid-av-fallback", "aria-hidden": "true", text: supporter.name.slice(0, 1).toUpperCase() });
+
+    return el(
+      "button",
+      {
+        type: "button",
+        class: "polaroid-card",
+        style: { "--rot": `${rotDeg}deg` },
+        "aria-label": `放大查看给 ${supporter.name} 的拍立得`,
+        onClick: (ev) => {
+          const lbItems = allList.map((s) => ({
+            src: s.photo,
+            title: `To ${s.name}`,
+            text: s.caption,
+            avatar: s.avatar,
+            href: `https://space.bilibili.com/${s.mid}`,
+          }));
+          openLightbox(lbItems, globalIdx, ev.currentTarget);
+        },
+      },
+      el("img", {
+        class: "polaroid-pic",
+        src: supporter.photo,
+        alt: `给 ${supporter.name} 的专属拍立得`,
+      }),
+      el("span", { class: "polaroid-who" }, avatarNode, el("strong", { class: "polaroid-name", text: supporter.name })),
+      el("p", { class: "polaroid-msg", text: supporter.caption }),
+    );
+  }
+
+  function renderAlbum() {
+    const list = filteredSupporters();
+    const perPage = albumPerPage();
+    const totalPages = Math.max(1, Math.ceil(list.length / perPage));
+    state.albumPage = Math.max(0, Math.min(totalPages - 1, state.albumPage));
+
+    const start = state.albumPage * perPage;
+    const slice = list.slice(start, start + perPage);
+    const rots = [-1.8, 1.5, -1.1, 1.9, 1.4, -1.6, 1.2, -1.4];
+
+    if (!list.length) {
+      albumSpreadEl.replaceChildren(
+        el("div", { class: "album-page" }, el("p", { class: "empty-state", text: state.albumQuery ? "没有找到匹配的充电员。" : "相册正在整理中…" })),
+      );
+    } else if (mobileMq.matches) {
+      const pageEl = el(
+        "div",
+        { class: "album-page" },
+        ...slice.map((s, i) => createPolaroidCard(s, start + i, list, 0)),
+      );
+      albumSpreadEl.replaceChildren(pageEl);
+    } else {
+      const leftSlice = slice.slice(0, 4);
+      const rightSlice = slice.slice(4, 8);
+      const leftEl = el(
+        "div",
+        { class: "album-page" },
+        ...leftSlice.map((s, i) => createPolaroidCard(s, start + i, list, rots[i % rots.length])),
+      );
+      const rightEl = el(
+        "div",
+        { class: "album-page" },
+        ...(rightSlice.length
+          ? rightSlice.map((s, i) => createPolaroidCard(s, start + 4 + i, list, rots[(4 + i) % rots.length]))
+          : [el("p", { class: "empty-state", text: "这一页留给未来的新朋友。" })]),
+      );
+      albumSpreadEl.replaceChildren(leftEl, rightEl);
+    }
+
+    const isFirst = state.albumPage <= 0;
+    const isLast = state.albumPage >= totalPages - 1;
+    for (const b of albumPrevBtns) if (b) b.disabled = isFirst;
+    for (const b of albumNextBtns) if (b) b.disabled = isLast;
+    albumStatusEl.textContent = mobileMq.matches
+      ? `第 ${state.albumPage + 1} / ${totalPages} 页 · 共 ${list.length} 位`
+      : `第 ${state.albumPage + 1} / ${totalPages} 跨页 · 共 ${list.length} 位`;
+
+    albumDotsEl.replaceChildren(
+      ...Array.from({ length: totalPages }, (_, idx) =>
+        el("button", {
+          type: "button",
+          class: "dot-btn",
+          "aria-current": idx === state.albumPage ? "page" : undefined,
+          text: String(idx + 1),
+          onClick: () => {
+            state.albumPage = idx;
+            renderAlbum();
+            setHashSilent(idx > 0 ? `polaroids/p${idx + 1}` : "polaroids");
+            announce(`相册第 ${idx + 1} 页`);
+          },
+        }),
+      ),
+    );
+  }
+
+  function stepAlbum(delta) {
+    const list = filteredSupporters();
+    const totalPages = Math.max(1, Math.ceil(list.length / albumPerPage()));
+    const next = Math.max(0, Math.min(totalPages - 1, state.albumPage + delta));
+    if (next === state.albumPage) return;
+    state.albumPage = next;
+    renderAlbum();
+    setHashSilent(next > 0 ? `polaroids/p${next + 1}` : "polaroids");
+    announce(`相册第 ${next + 1} 页，共 ${totalPages} 页`);
+  }
+
+  // ==================== 视图 3：透明算力与 API 费用账单 ====================
+  function buildDailyChartSvg(days, metric) {
+    const W = 940;
+    const H = 220;
+    const padL = 56;
+    const padR = 16;
+    const padT = 18;
+    const padB = 34;
+    const iw = W - padL - padR;
+    const ih = H - padT - padB;
+
+    const svg = svgEl("svg", {
+      viewBox: `0 0 ${W} ${H}`,
+      role: "img",
+      "aria-label": metric === "replies" ? "每日评论与私信回复条数趋势图" : "每日等效 API 费用趋势图",
+    });
+
+    if (!days.length) {
+      svg.appendChild(svgEl("text", { x: W / 2, y: H / 2, "text-anchor": "middle", fill: "#5c4a3d", "font-size": "14" }, "暂无按天数据"));
+      return svg;
+    }
+
+    const values = days.map((d) => (metric === "replies" ? d.totalReplies : d.totalCostUsd));
+    const maxV = Math.max(1, ...values);
+    const step = iw / days.length;
+    const barW = Math.max(6, Math.min(24, step * 0.68));
+
+    // 横向网格线
+    for (let g = 0; g <= 3; g++) {
+      const frac = g / 3;
+      const y = padT + ih * (1 - frac);
+      const val = maxV * frac;
+      svg.appendChild(
+        svgEl("line", {
+          x1: padL,
+          y1: y.toFixed(1),
+          x2: W - padR,
+          y2: y.toFixed(1),
+          stroke: "rgba(92,74,61,0.18)",
+          "stroke-dasharray": g === 0 ? "" : "4 4",
+          "stroke-width": g === 0 ? "1.5" : "1",
+        }),
+      );
+      const label = metric === "replies" ? String(Math.round(val)) : `$${Math.round(val)}`;
+      svg.appendChild(
+        svgEl(
+          "text",
+          { x: padL - 8, y: (y + 4).toFixed(1), "text-anchor": "end", fill: "#5c4a3d", "font-size": "11", "font-family": "Fusion Pixel, monospace" },
+          label,
+        ),
+      );
+    }
+
+    const labelEvery = Math.max(1, Math.ceil(days.length / 10));
+
+    days.forEach((d, idx) => {
+      const cx = padL + idx * step + step / 2;
+      const x = cx - barW / 2;
+      const group = svgEl("g");
+
+      if (metric === "replies") {
+        const cH = (d.commentReplies / maxV) * ih;
+        const dmH = (d.dmReplies / maxV) * ih;
+        const yComment = padT + ih - cH;
+        const yDm = yComment - dmH;
+        if (cH > 0) {
+          group.appendChild(svgEl("rect", { x: x.toFixed(1), y: yComment.toFixed(1), width: barW.toFixed(1), height: Math.max(1, cH).toFixed(1), rx: 2, fill: "#df6f2d" }));
+        }
+        if (dmH > 0) {
+          group.appendChild(svgEl("rect", { x: x.toFixed(1), y: yDm.toFixed(1), width: barW.toFixed(1), height: Math.max(1, dmH).toFixed(1), rx: 2, fill: "#2e568f" }));
+        }
+        group.appendChild(
+          svgEl(
+            "title",
+            null,
+            `${d.date}：公开评论 ${d.commentReplies} 条 + 私信 ${d.dmReplies} 条 = 共 ${d.totalReplies} 条`,
+          ),
+        );
+      } else {
+        const repH = (d.replyCostUsd / maxV) * ih;
+        const filmH = (d.filmCostUsd / maxV) * ih;
+        const othH = (d.otherCostUsd / maxV) * ih;
+        let curY = padT + ih;
+        const parts = [
+          [repH, "#df6f2d"],
+          [filmH, "#2e6e50"],
+          [othH, "#8c6d53"],
+        ];
+        for (const [h, fill] of parts) {
+          if (h <= 0) continue;
+          curY -= h;
+          group.appendChild(svgEl("rect", { x: x.toFixed(1), y: curY.toFixed(1), width: barW.toFixed(1), height: Math.max(1, h).toFixed(1), rx: 2, fill }));
+        }
+        group.appendChild(
+          svgEl(
+            "title",
+            null,
+            `${d.date}：回复 ${fmtUsd(d.replyCostUsd)} · 视频 ${fmtUsd(d.filmCostUsd)} · 工程/其他 ${fmtUsd(d.otherCostUsd)}（合计 ${fmtUsd(d.totalCostUsd)}${d.estimated ? " · 含历史估算" : ""}）`,
+          ),
+        );
+      }
+
+      if (idx % labelEvery === 0 || idx === days.length - 1) {
+        group.appendChild(
+          svgEl(
+            "text",
+            { x: cx.toFixed(1), y: H - 10, "text-anchor": "middle", fill: "#5c4a3d", "font-size": "11", "font-family": "Fusion Pixel, monospace" },
+            d.date.slice(5),
+          ),
+        );
+      }
+      svg.appendChild(group);
+    });
+
+    return svg;
+  }
+
+  function renderLedger() {
+    if (!ledgerContainer) return;
+    if (!ledger) {
+      ledgerContainer.replaceChildren(el("div", { class: "ledger-wrap" }, el("div", { class: "ledger-card" }, el("p", { text: "账单数据暂不可用。" }))));
+      return;
+    }
+
+    const t = ledger.totals;
+    const rate = Number(ledger.usdToCnyRate) || 7.25;
+
+    // 1. 总览票头
+    const heroCard = el(
+      "section",
+      { class: "ledger-card", "aria-label": "算力与费用总览" },
+      el(
+        "div",
+        { class: "ledger-hero" },
+        el(
+          "div",
+          { class: "kpi-box primary" },
+          el("div", { class: "kpi-label", text: "等效官方 API 总费用" }),
+          el("div", { class: "kpi-value", text: fmtUsd(t.costUsd) }),
+          el("div", { class: "kpi-sub", text: `折合人民币约 ${fmtCny(t.costCny)}` }),
+        ),
+        el(
+          "div",
+          { class: "kpi-box" },
+          el("div", { class: "kpi-label", text: "累计总 Token" }),
+          el("div", { class: "kpi-value", text: fmtTokens(t.totalTokens) }),
+          el("div", {
+            class: "kpi-sub",
+            text: `In ${fmtTokens(t.inputTokens)} · Out ${fmtTokens(t.outputTokens)} · Cache读 ${fmtTokens(t.cacheReadTokens)} · Cache写 ${fmtTokens(t.cacheCreationTokens)}`,
+          }),
+        ),
+        el(
+          "div",
+          { class: "kpi-box" },
+          el("div", { class: "kpi-label", text: "累计真实回复条数" }),
+          el("div", { class: "kpi-value", text: `${fmtInt(t.totalReplies)} 条` }),
+          el("div", { class: "kpi-sub", text: `公开评论 ${fmtInt(t.commentReplies)} · 私信 ${fmtInt(t.dmReplies)}（零正文）` }),
+        ),
+        el(
+          "div",
+          { class: "kpi-box" },
+          el("div", { class: "kpi-label", text: "累计模型调用次数" }),
+          el("div", { class: "kpi-value", text: `${fmtInt(t.calls)} 次` }),
+          el("div", { class: "kpi-sub", text: `账单生成于 ${String(ledger.generatedAt || "").slice(0, 10)}` }),
+        ),
+      ),
+      el("p", {
+        class: "ledger-note",
+        text: "口径说明：本账号文本模型实际通过订阅制运行，上表按各模型公开 API 单价折算「等效 API 费用」以便直观看到算力消耗。私信仅统计匿名聚合条数，绝不收录任何私信原文或充电金额；历史已清理的一次性回复沙箱按实测单次均值保守估算并显式标出「估算」。",
+      }),
+    );
+
+    // 2. 按模型占比 & 按用途
+    const modelBar = el("div", { class: "model-bar", role: "img", "aria-label": "按模型家族费用占比条" });
+    const modelLegend = el("div", { class: "model-legend" });
+    (ledger.byModel || []).forEach((m, i) => {
+      const color = MODEL_COLORS[m.family] || FALLBACK_COLORS[i % FALLBACK_COLORS.length];
+      if (m.sharePct > 0) {
+        modelBar.appendChild(
+          el("div", {
+            class: "model-seg",
+            style: { width: `${Math.max(0.6, m.sharePct)}%`, background: color },
+            title: `${m.family}: ${m.sharePct}% (${fmtUsd(m.costUsd)})`,
+          }),
+        );
+      }
+      modelLegend.appendChild(
+        el(
+          "span",
+          { class: "legend-item" },
+          el("span", { class: "legend-dot", style: { background: color }, "aria-hidden": "true" }),
+          el("strong", { text: m.family.toUpperCase() }),
+          el("span", { text: `${m.sharePct.toFixed(1)}% · ${fmtUsd(m.costUsd)} · ${fmtTokens(m.totalTokens)}` }),
+        ),
+      );
+    });
+
+    const scopeGrid = el(
+      "div",
+      { class: "scope-grid" },
+      ...(ledger.byScope || []).map((sc) =>
+        el(
+          "div",
+          { class: "scope-pill" },
+          el("span", { text: sc.label }),
+          el("b", { text: fmtUsd(sc.costUsd) }),
+          el("small", { text: `${fmtInt(sc.calls)} 次调用 · ${fmtTokens(sc.totalTokens)} tok` }),
+        ),
+      ),
+    );
+
+    const modelCard = el(
+      "section",
+      { class: "ledger-card", "aria-label": "按模型与用途拆分" },
+      el("div", { class: "section-head" }, el("div", null, el("h3", { text: "模型占比与用途分布" }), el("p", { class: "section-sub", text: "含 Opus / Fable / Gemini / Sonnet / Haiku 等各家族占比" }))),
+      modelBar,
+      modelLegend,
+      scopeGrid,
+    );
+
+    // 3. 每个视频/作品的 Token 与等效 API 费用
+    const worksTbody = el("tbody");
+    const renderWorksRows = () => {
+      const q = state.ledgerWorkQuery.trim().toLowerCase();
+      let rows = [...(ledger.byWork || [])];
+      if (q) {
+        rows = rows.filter(
+          (w) =>
+            String(w.title || "").toLowerCase().includes(q) ||
+            String(w.id || "").toLowerCase().includes(q) ||
+            String(w.bvid || "").toLowerCase().includes(q),
+        );
+      }
+      rows.sort((a, b) => {
+        if (state.ledgerWorkSort === "tokens") return b.totalTokens - a.totalTokens || b.costUsd - a.costUsd;
+        if (state.ledgerWorkSort === "date") return String(b.publishedAt || "").localeCompare(String(a.publishedAt || "")) || b.costUsd - a.costUsd;
+        return b.costUsd - a.costUsd || b.totalTokens - a.totalTokens;
+      });
+      if (!rows.length) {
+        worksTbody.replaceChildren(el("tr", null, el("td", { colspan: 6, class: "empty-state", text: "没有匹配的作品记录。" })));
+        return;
+      }
+      worksTbody.replaceChildren(
+        ...rows.map((w) => {
+          const titleNode = isValidBvid(w.bvid)
+            ? el("a", { class: "work-link", href: `https://www.bilibili.com/video/${w.bvid}`, target: "_blank", rel: "noopener noreferrer", text: `${w.title} ↗` })
+            : el("span", { text: w.title });
+          return el(
+            "tr",
+            null,
+            el("td", null, titleNode),
+            el("td", { class: "num-col", text: w.publishedAt || "—" }),
+            el("td", { class: "num-col", text: fmtInt(w.calls) }),
+            el("td", { class: "num-col", text: fmtTokens(w.totalTokens) }),
+            el("td", { class: "num-col", text: fmtUsd(w.costUsd) }),
+            el("td", { class: "num-col", text: fmtCny(w.costUsd * rate) }),
+          );
+        }),
+      );
+    };
+    renderWorksRows();
+
+    const makeSortBtn = (key, label) =>
+      el("button", {
+        type: "button",
+        class: `sort-btn${state.ledgerWorkSort === key ? " active" : ""}`,
+        text: label,
+        onClick: (ev) => {
+          state.ledgerWorkSort = key;
+          const parent = ev.currentTarget.parentElement;
+          if (parent) parent.querySelectorAll(".sort-btn").forEach((b) => b.classList.remove("active"));
+          ev.currentTarget.classList.add("active");
+          renderWorksRows();
+        },
+      });
+
+    const worksCard = el(
+      "section",
+      { class: "ledger-card", "aria-label": "单部作品算力明细" },
+      el(
+        "div",
+        { class: "section-head" },
+        el("div", null, el("h3", { text: "各视频 / 作品 Token 与等效费用" }), el("p", { class: "section-sub", text: `共 ${ledger.byWork.length} 项归档作品，点击标题可跳转 B 站观看` })),
+        el(
+          "div",
+          { class: "table-tools" },
+          el("input", {
+            type: "search",
+            placeholder: "搜作品标题或 BV 号…",
+            value: state.ledgerWorkQuery,
+            "aria-label": "筛选作品",
+            onInput: (ev) => {
+              state.ledgerWorkQuery = ev.currentTarget.value;
+              renderWorksRows();
+            },
+          }),
+          makeSortBtn("cost", "按费用"),
+          makeSortBtn("tokens", "按 Token"),
+          makeSortBtn("date", "按日期"),
+        ),
+      ),
+      el(
+        "div",
+        { class: "table-scroll" },
+        el(
+          "table",
+          { class: "data-table" },
+          el(
+            "thead",
+            null,
+            el(
+              "tr",
+              null,
+              el("th", { text: "作品" }),
+              el("th", { class: "num-col", text: "日期" }),
+              el("th", { class: "num-col", text: "调用" }),
+              el("th", { class: "num-col", text: "总 Token" }),
+              el("th", { class: "num-col", text: "等效 USD" }),
+              el("th", { class: "num-col", text: "约 CNY" }),
+            ),
+          ),
+          worksTbody,
+        ),
+      ),
+    );
+
+    // 4. 每天回复消息条目与 API 费用趋势 + 明细表
+    const daysAsc = [...(ledger.byDay || [])].sort((a, b) => a.date.localeCompare(b.date));
+    const daysDesc = [...daysAsc].reverse();
+    const chartBox = el("div", { class: "chart-box" });
+    const chartLegend = el("div", { class: "model-legend", style: { "margin-top": "8px" } });
+
+    const renderChart = () => {
+      chartBox.replaceChildren(buildDailyChartSvg(daysAsc, state.ledgerChartMetric));
+      if (state.ledgerChartMetric === "replies") {
+        chartLegend.replaceChildren(
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#df6f2d" } }), "公开评论回复"),
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#2e568f" } }), "私信回复（仅聚合条数）"),
+        );
+      } else {
+        chartLegend.replaceChildren(
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#df6f2d" } }), "评论/私信回复费用"),
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#2e6e50" } }), "视频制作费用"),
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#8c6d53" } }), "工程运维/动态费用"),
+        );
+      }
+      chartBox.appendChild(chartLegend);
+    };
+    renderChart();
+
+    const makeMetricBtn = (metric, label) =>
+      el("button", {
+        type: "button",
+        class: `sort-btn${state.ledgerChartMetric === metric ? " active" : ""}`,
+        text: label,
+        onClick: (ev) => {
+          state.ledgerChartMetric = metric;
+          const parent = ev.currentTarget.parentElement;
+          if (parent) parent.querySelectorAll(".sort-btn").forEach((b) => b.classList.remove("active"));
+          ev.currentTarget.classList.add("active");
+          renderChart();
+        },
+      });
+
+    const dailyCard = el(
+      "section",
+      { class: "ledger-card", "aria-label": "按天回复条数与 API 费用明细" },
+      el(
+        "div",
+        { class: "section-head" },
+        el("div", null, el("h3", { text: "每日回复条目与 API 费用" }), el("p", { class: "section-sub", text: `共 ${daysDesc.length} 个活跃日（鼠标悬停柱条查看当日拆分）` })),
+        el("div", { class: "table-tools" }, makeMetricBtn("replies", "回复条数趋势"), makeMetricBtn("cost", "每日费用趋势")),
+      ),
+      chartBox,
+      el(
+        "div",
+        { class: "table-scroll" },
+        el(
+          "table",
+          { class: "data-table" },
+          el(
+            "thead",
+            null,
+            el(
+              "tr",
+              null,
+              el("th", { text: "日期" }),
+              el("th", { class: "num-col", text: "公开评论" }),
+              el("th", { class: "num-col", text: "私信条数" }),
+              el("th", { class: "num-col", text: "回复费用" }),
+              el("th", { class: "num-col", text: "制作费用" }),
+              el("th", { class: "num-col", text: "当日总费用" }),
+              el("th", { class: "num-col", text: "口径" }),
+            ),
+          ),
+          el(
+            "tbody",
+            null,
+            ...daysDesc.map((d) =>
+              el(
+                "tr",
+                null,
+                el("td", { text: d.date }),
+                el("td", { class: "num-col", text: fmtInt(d.commentReplies) }),
+                el("td", { class: "num-col", text: fmtInt(d.dmReplies) }),
+                el("td", { class: "num-col", text: fmtUsd(d.replyCostUsd) }),
+                el("td", { class: "num-col", text: fmtUsd(d.filmCostUsd) }),
+                el("td", { class: "num-col", text: `${fmtUsd(d.totalCostUsd)} (${fmtCny(d.totalCostUsd * rate)})` }),
+                el(
+                  "td",
+                  { class: "num-col" },
+                  el("span", {
+                    class: `est-badge ${d.estimated ? "est" : "exact"}`,
+                    text: d.estimated ? "含估算" : "实测",
+                    title: d.estimated ? "包含已清理历史一次性回复沙箱的保守均值估算" : "全部来自已落盘精确 Token 记录",
+                  }),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    ledgerContainer.replaceChildren(el("div", { class: "ledger-wrap" }, heroCard, modelCard, worksCard, dailyCard));
+  }
+
+  // ==================== 通用放大灯箱 ====================
+  function renderLightbox() {
+    const { items, index } = state.lightbox;
+    const item = items[index];
+    if (!item) return;
+
+    lbImg.src = item.src;
+    lbImg.alt = item.text || item.title || "";
+    lbTitle.textContent = item.title || "";
+    lbText.textContent = item.text || "";
+    lbCounter.textContent = `${index + 1} / ${items.length}`;
+
+    if (item.avatar) {
+      lbAvatar.src = item.avatar;
+      lbAvatar.hidden = false;
+    } else {
+      lbAvatar.hidden = true;
+      lbAvatar.removeAttribute("src");
+    }
+
+    if (item.href && /^https:\/\/space\.bilibili\.com\/\d+$/.test(item.href)) {
+      lbLink.href = item.href;
+      lbLink.hidden = false;
+    } else {
+      lbLink.hidden = true;
+      lbLink.removeAttribute("href");
+    }
+
+    lbPrevBtn.disabled = items.length <= 1;
+    lbNextBtn.disabled = items.length <= 1;
+  }
+
+  function openLightbox(items, index, trigger) {
+    if (!items || !items.length || !lbEl) return;
+    state.lightbox = { open: true, items, index: Math.max(0, Math.min(items.length - 1, index)), trigger };
+    renderLightbox();
+    if (state.view !== "desk" && views[state.view]) {
+      views[state.view].inert = true;
+      views[state.view].setAttribute("aria-hidden", "true");
+    }
+    setHiddenInert(lbEl, false);
+    if (lbCloseBtn) lbCloseBtn.focus();
+    announce(`已放大查看：${items[state.lightbox.index].title || "图片"}`);
+  }
+
+  function closeLightbox(opts = { restoreFocus: true }) {
+    if (!state.lightbox.open || !lbEl) return;
+    const trigger = state.lightbox.trigger;
+    state.lightbox.open = false;
+    setHiddenInert(lbEl, true);
+    if (state.view !== "desk" && views[state.view]) {
+      views[state.view].inert = false;
+      views[state.view].setAttribute("aria-hidden", "false");
+    }
+    if (opts.restoreFocus && trigger && typeof trigger.focus === "function") {
+      trigger.focus();
+    }
+  }
+
+  function stepLightbox(delta) {
+    if (!state.lightbox.open || state.lightbox.items.length <= 1) return;
+    const len = state.lightbox.items.length;
+    state.lightbox.index = (state.lightbox.index + delta + len) % len;
+    renderLightbox();
+    announce(`第 ${state.lightbox.index + 1} 张，共 ${len} 张`);
+  }
+
+  // ==================== Hash 路由解析 ====================
+  function applyHashRoute(skipFocus = false) {
+    const h = safeHashString();
+    if (!h || h === "desk") {
+      openView("desk", { fromHash: true, skipFocus });
+      return;
+    }
+    if (h === "thanks" || h === "polaroids" || h.startsWith("polaroids/")) {
+      const m = /^polaroids\/p(\d+)$/.exec(h);
+      state.albumPage = m ? Math.max(0, Number(m[1]) - 1) : 0;
+      openView("polaroids", { fromHash: true, skipFocus });
+      return;
+    }
+    if (h === "ledger" || h === "bill") {
+      openView("ledger", { fromHash: true, skipFocus });
+      return;
+    }
+    if (h === "w1" || h.startsWith("w1-") || h === "diary/w1") {
+      state.diaryTab = "archive";
+      state.archiveIndex = 0;
+      openView("diary", { fromHash: true, skipFocus });
+      return;
+    }
+    if (h === "w2" || h.startsWith("w2-") || h === "diary/w2" || h === "diary/archive") {
+      state.diaryTab = "archive";
+      state.archiveIndex = Math.min(1, Math.max(0, archiveWeeks.length - 1));
+      openView("diary", { fromHash: true, skipFocus });
+      return;
+    }
+    if (h === "diary" || h.startsWith("diary/")) {
+      state.diaryTab = "daily";
+      const datePart = h.slice("diary/".length);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        const idx = diaryEntries.findIndex((d) => d.date === datePart);
+        if (idx >= 0) state.diaryIndex = idx;
+      }
+      openView("diary", { fromHash: true, skipFocus });
+      return;
+    }
+    openView("desk", { fromHash: true, skipFocus });
+  }
+
+  // ==================== 事件绑定 ====================
+  document.addEventListener("click", (ev) => {
+    const opener = ev.target.closest("[data-open]");
+    if (opener) {
+      openView(opener.dataset.open, { trigger: opener });
+      return;
+    }
+    if (ev.target.closest("[data-close-view]")) {
+      openView("desk");
+      return;
+    }
+    const diaryTabBtn = ev.target.closest("[data-diary-tab]");
+    if (diaryTabBtn) {
+      state.diaryTab = diaryTabBtn.dataset.diaryTab === "archive" ? "archive" : "daily";
+      renderDiary();
+      syncDiaryHash();
+      return;
+    }
+    if (ev.target.closest("[data-lb-close]") || ev.target === lbCloseBtn) {
+      closeLightbox({ restoreFocus: true });
+    }
+  });
+
+  for (const b of diaryPrevBtns) if (b) b.addEventListener("click", () => stepDiary(-1));
+  for (const b of diaryNextBtns) if (b) b.addEventListener("click", () => stepDiary(1));
+  for (const b of albumPrevBtns) if (b) b.addEventListener("click", () => stepAlbum(-1));
+  for (const b of albumNextBtns) if (b) b.addEventListener("click", () => stepAlbum(1));
+  if (lbPrevBtn) lbPrevBtn.addEventListener("click", () => stepLightbox(-1));
+  if (lbNextBtn) lbNextBtn.addEventListener("click", () => stepLightbox(1));
+
+  if (albumSearchEl) {
+    albumSearchEl.addEventListener("input", () => {
+      state.albumQuery = albumSearchEl.value;
+      state.albumPage = 0;
+      renderAlbum();
+    });
+  }
+
+  // 键盘导航：严格守卫修饰键与表单焦点，绝不劫持输入框/按钮默认操作
+  window.addEventListener("keydown", (ev) => {
+    if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    const tag = document.activeElement?.tagName;
+    const isTyping = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || document.activeElement?.isContentEditable;
+
+    if (ev.key === "Escape") {
+      if (state.lightbox.open) {
+        ev.preventDefault();
+        closeLightbox({ restoreFocus: true });
+      } else if (state.view !== "desk") {
+        ev.preventDefault();
+        openView("desk");
+      }
+      return;
+    }
+
+    if (isTyping) return;
+
+    if (state.lightbox.open) {
+      if (ev.key === "ArrowLeft") {
+        ev.preventDefault();
+        stepLightbox(-1);
+      } else if (ev.key === "ArrowRight") {
+        ev.preventDefault();
+        stepLightbox(1);
+      }
+      return;
+    }
+
+    if (state.view === "diary") {
+      if (ev.key === "ArrowLeft") {
+        ev.preventDefault();
+        stepDiary(-1);
+      } else if (ev.key === "ArrowRight") {
+        ev.preventDefault();
+        stepDiary(1);
+      }
+    } else if (state.view === "polaroids") {
+      if (ev.key === "ArrowLeft") {
+        ev.preventDefault();
+        stepAlbum(-1);
+      } else if (ev.key === "ArrowRight") {
+        ev.preventDefault();
+        stepAlbum(1);
+      }
+    }
+  });
+
+  // 单指左右滑手势：显式忽略双指缩放（pinch-zoom）
+  function attachSingleFingerSwipe(targetEl, onLeft, onRight) {
+    if (!targetEl) return;
+    let startX = null;
+    let startY = 0;
+    let multiTouch = false;
+
+    targetEl.addEventListener(
+      "touchstart",
+      (ev) => {
+        if (ev.touches.length !== 1) {
+          multiTouch = true;
+          startX = null;
+          return;
+        }
+        multiTouch = false;
+        startX = ev.touches[0].clientX;
+        startY = ev.touches[0].clientY;
+      },
+      { passive: true },
+    );
+
+    targetEl.addEventListener(
+      "touchmove",
+      (ev) => {
+        if (ev.touches.length > 1) {
+          multiTouch = true;
+          startX = null;
+        }
+      },
+      { passive: true },
+    );
+
+    targetEl.addEventListener(
+      "touchend",
+      (ev) => {
+        if (multiTouch || startX === null || ev.changedTouches.length !== 1) {
+          startX = null;
+          return;
+        }
+        const dx = ev.changedTouches[0].clientX - startX;
+        const dy = ev.changedTouches[0].clientY - startY;
+        startX = null;
+        if (Math.abs(dx) > 52 && Math.abs(dx) > Math.abs(dy) * 1.35) {
+          if (dx < 0) onRight();
+          else onLeft();
+        }
+      },
+      { passive: true },
+    );
+  }
+
+  attachSingleFingerSwipe(diarySpreadEl, () => stepDiary(-1), () => stepDiary(1));
+  attachSingleFingerSwipe(albumSpreadEl, () => stepAlbum(-1), () => stepAlbum(1));
+  attachSingleFingerSwipe(lbEl, () => stepLightbox(-1), () => stepLightbox(1));
+
+  // 断点切换（matchMedia 与 CSS @media (max-width: 899px) 1:1 对齐）
+  mobileMq.addEventListener("change", () => {
+    if (state.view === "polaroids") renderAlbum();
+  });
+
+  window.addEventListener("hashchange", () => applyHashRoute(false));
+
+  // 可选静默拉取最新 ledger.json（保持离线 seed 立即可用，线上有新构建时自动同步）
+  if (window.location.protocol !== "file:" && !navigator.webdriver) {
+    fetch("./ledger.json", { cache: "no-cache" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((fresh) => {
+        if (fresh && fresh.totals && fresh.generatedAt !== ledger?.generatedAt) {
+          ledger = fresh;
+          if (state.view === "ledger") renderLedger();
+        }
+      })
+      .catch(() => {
+        // 静默回退到页面内嵌 ledger-seed
+      });
+  }
+
+  // 初始路由
+  applyHashRoute(true);
+  // 供调试检查保留只读 esc 引用
+  void esc;
 })();
