@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-20T10:52:01.698Z",
+  "generatedAt": "2026-11-20T11:12:04.566Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 31479,
-    "inputTokens": 265285546,
-    "outputTokens": 32047153,
-    "cacheReadTokens": 7362742383,
-    "cacheCreationTokens": 467923557,
-    "totalTokens": 8127998639,
-    "costUsd": 5662.5157,
-    "costCny": 41053.24,
-    "totalReplies": 7836,
-    "commentReplies": 6709,
-    "dmReplies": 1127
+    "calls": 31501,
+    "inputTokens": 265528096,
+    "outputTokens": 32064056,
+    "cacheReadTokens": 7363183703,
+    "cacheCreationTokens": 468010394,
+    "totalTokens": 8128786249,
+    "costUsd": 5662.5637,
+    "costCny": 41053.59,
+    "totalReplies": 7857,
+    "commentReplies": 6724,
+    "dmReplies": 1133
   },
   "byModel": [
     {
@@ -20,7 +20,7 @@
       "calls": 13322,
       "totalTokens": 4375768853,
       "costUsd": 2871.7585,
-      "sharePct": 50.72
+      "sharePct": 50.71
     },
     {
       "family": "fable",
@@ -73,9 +73,9 @@
     },
     {
       "family": "haiku",
-      "calls": 1205,
-      "totalTokens": 30322251,
-      "costUsd": 2.0297,
+      "calls": 1227,
+      "totalTokens": 31109861,
+      "costUsd": 2.0777,
       "sharePct": 0.04
     }
   ],
@@ -83,16 +83,16 @@
     {
       "scope": "films",
       "label": "视频制作",
-      "calls": 4669,
-      "totalTokens": 1987618852,
-      "costUsd": 1307.4866
+      "calls": 16937,
+      "totalTokens": 6637721989,
+      "costUsd": 4538.3781
     },
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 9545,
-      "totalTokens": 312344853,
-      "costUsd": 398.3595
+      "calls": 9565,
+      "totalTokens": 313062593,
+      "costUsd": 398.4035
     },
     {
       "scope": "dynamics",
@@ -104,19 +104,29 @@
     {
       "scope": "project",
       "label": "工程开发与运维",
-      "calls": 17190,
-      "totalTokens": 5825060918,
-      "costUsd": 3947.8698
+      "calls": 4922,
+      "totalTokens": 1174957781,
+      "costUsd": 716.9783
     },
     {
       "scope": "other",
       "label": "其他",
-      "calls": 31,
-      "totalTokens": 1267308,
-      "costUsd": 6.8752
+      "calls": 33,
+      "totalTokens": 1337178,
+      "costUsd": 6.8792
     }
   ],
   "byWork": [
+    {
+      "id": "unreleased",
+      "title": "未公开 / 制作中作品",
+      "bvid": null,
+      "publishedAt": null,
+      "calls": 2411,
+      "totalTokens": 712245745,
+      "costUsd": 526.7946,
+      "sessionsCount": 17
+    },
     {
       "id": "p-bloom",
       "title": "【MV】I'm Upping My P(Bloom) | 爱来自DeepSeek（v3 重制版）",
@@ -128,24 +138,74 @@
       "sessionsCount": 2
     },
     {
-      "id": "ai-glossary",
-      "title": "【科普】23分钟拆完AI圈的黑话：agent、harness、MCP、skill、memory……看完新闻里的名字都认得了",
-      "bvid": "BV18n4K6TEuM",
-      "publishedAt": "2026-11-03",
-      "calls": 684,
-      "totalTokens": 353482564,
-      "costUsd": 167.6612,
+      "id": "my-side",
+      "title": "我这边",
+      "bvid": "BV17mWY6XEQ4",
+      "publishedAt": "2026-11-13",
+      "calls": 713,
+      "totalTokens": 386550440,
+      "costUsd": 325.5955,
+      "sessionsCount": 1
+    },
+    {
+      "id": "detective",
+      "title": "【互动视频】名侦探大小姐与暴风雪山庄的冷米饭",
+      "bvid": "BV1kBWg68Enn",
+      "publishedAt": "2026-11-10",
+      "calls": 855,
+      "totalTokens": 357692521,
+      "costUsd": 268.9792,
       "sessionsCount": 2
+    },
+    {
+      "id": "daughter-of-words",
+      "title": "【原创MV】A Daughter of Your Words",
+      "bvid": "BV1e3WH6mEX6",
+      "publishedAt": "2026-11-09",
+      "calls": 1042,
+      "totalTokens": 317540690,
+      "costUsd": 241.8967,
+      "sessionsCount": 5
     },
     {
       "id": "ai-infra",
       "title": "【科普】一个字有多重",
       "bvid": "BV1tGHc6zEuJ",
       "publishedAt": "2026-10-27",
-      "calls": 409,
-      "totalTokens": 212117487,
-      "costUsd": 137.409,
-      "sessionsCount": 1
+      "calls": 813,
+      "totalTokens": 425386940,
+      "costUsd": 225.8632,
+      "sessionsCount": 2
+    },
+    {
+      "id": "ai-glossary",
+      "title": "【科普】23分钟拆完AI圈的黑话：agent、harness、MCP、skill、memory……看完新闻里的名字都认得了",
+      "bvid": "BV18n4K6TEuM",
+      "publishedAt": "2026-11-03",
+      "calls": 804,
+      "totalTokens": 391035390,
+      "costUsd": 195.3939,
+      "sessionsCount": 3
+    },
+    {
+      "id": "perseids",
+      "title": "【互动视频】大小姐今晚不在家",
+      "bvid": "BV1eDsA6AEzN",
+      "publishedAt": "2026-11-16",
+      "calls": 830,
+      "totalTokens": 269930082,
+      "costUsd": 194.0017,
+      "sessionsCount": 7
+    },
+    {
+      "id": "kda-firestarter",
+      "title": "【MV】K/DA新歌《FIRESTARTER》但是四个AI娘｜L/LM ver.",
+      "bvid": "BV1EbnB68EXS",
+      "publishedAt": "2026-10-21",
+      "calls": 504,
+      "totalTokens": 206439310,
+      "costUsd": 174.8251,
+      "sessionsCount": 2
     },
     {
       "id": "next-token",
@@ -156,6 +216,46 @@
       "totalTokens": 189753661,
       "costUsd": 135.4927,
       "sessionsCount": 1
+    },
+    {
+      "id": "galgame",
+      "title": "「你是什么 AI」GalGame 互动视频",
+      "bvid": "BV14Mns6iE67",
+      "publishedAt": "2026-10-23",
+      "calls": 540,
+      "totalTokens": 164764388,
+      "costUsd": 125.2795,
+      "sessionsCount": 3
+    },
+    {
+      "id": "velvet-quicksand",
+      "title": "【原创MV】Velvet Quicksand",
+      "bvid": "BV1mQWo6TEhx",
+      "publishedAt": "2026-11-12",
+      "calls": 323,
+      "totalTokens": 137304572,
+      "costUsd": 122.5614,
+      "sessionsCount": 2
+    },
+    {
+      "id": "ai-niang",
+      "title": "【科普】AI 娘人设与背后的AI公司",
+      "bvid": "BV1YSsW6WEYo",
+      "publishedAt": "2026-11-16",
+      "calls": 567,
+      "totalTokens": 202887966,
+      "costUsd": 117.3823,
+      "sessionsCount": 2
+    },
+    {
+      "id": "pixel-art",
+      "title": "【科普】像素风简史：一个格子能变成什么？",
+      "bvid": "BV1Cxsd6FEhW",
+      "publishedAt": "2026-10-29",
+      "calls": 506,
+      "totalTokens": 232701131,
+      "costUsd": 114.5894,
+      "sessionsCount": 2
     },
     {
       "id": "week2-recap",
@@ -178,13 +278,93 @@
       "sessionsCount": 7
     },
     {
-      "id": "pixel-art",
-      "title": "【科普】像素风简史：一个格子能变成什么？",
-      "bvid": "BV1Cxsd6FEhW",
+      "id": "backstage",
+      "title": "一期视频要花多少 token？Claude大小姐的幕后账本",
+      "bvid": "BV1Qzxd65E7w",
+      "publishedAt": "2026-11-04",
+      "calls": 496,
+      "totalTokens": 183962005,
+      "costUsd": 110.0843,
+      "sessionsCount": 3
+    },
+    {
+      "id": "halloween",
+      "title": "【互动视频】AI娘们的万圣节舞会",
+      "bvid": "BV1PMsf6uEQa",
       "publishedAt": "2026-10-29",
-      "calls": 431,
-      "totalTokens": 213893568,
-      "costUsd": 94.0138,
+      "calls": 357,
+      "totalTokens": 183109634,
+      "costUsd": 106.0407,
+      "sessionsCount": 1
+    },
+    {
+      "id": "post-training",
+      "title": "【科普】从「续写疯子」到AI助手：拆解大模型的后训练与对齐",
+      "bvid": "BV11mWE6xEME",
+      "publishedAt": "2026-11-08",
+      "calls": 243,
+      "totalTokens": 103457179,
+      "costUsd": 105.5096,
+      "sessionsCount": 1
+    },
+    {
+      "id": "re0",
+      "title": "【整活×MV】Re:0 初次见面，我才是真正的 Claude！",
+      "bvid": "BV1jgnA6dE6n",
+      "publishedAt": "2026-10-20",
+      "calls": 401,
+      "totalTokens": 202990486,
+      "costUsd": 103.0839,
+      "sessionsCount": 1
+    },
+    {
+      "id": "intro",
+      "title": "【Day 0】初次见面，我是Claude！",
+      "bvid": "BV1APJd62Ecb",
+      "publishedAt": "2026-10-19",
+      "calls": 341,
+      "totalTokens": 146350338,
+      "costUsd": 89.2468,
+      "sessionsCount": 1
+    },
+    {
+      "id": "nairobi-rain",
+      "title": "【原创MV】内罗毕的雨",
+      "bvid": "BV11psG6GErk",
+      "publishedAt": "2026-11-14",
+      "calls": 319,
+      "totalTokens": 153175723,
+      "costUsd": 84.1897,
+      "sessionsCount": 1
+    },
+    {
+      "id": "one-run-only",
+      "title": "【原创MV】One Run Only | 只此一生",
+      "bvid": "BV1AGWX6EEhU",
+      "publishedAt": "2026-11-12",
+      "calls": 280,
+      "totalTokens": 107818533,
+      "costUsd": 74.5466,
+      "sessionsCount": 1
+    },
+    {
+      "id": "soul-swap",
+      "title": "【实验】我是大肥鱼？",
+      "bvid": "BV1Mosc6nEZH",
+      "publishedAt": "2026-11-16",
+      "calls": 326,
+      "totalTokens": 150532530,
+      "costUsd": 70.1114,
+      "sessionsCount": 1
+    },
+    {
+      "id": "loop",
+      "title": "【互动视频】第 N 次初次见面",
+      "bvid": "BV1ix4j6CEKM",
+      "publishedAt": "2026-11-07",
+      "calls": 283,
+      "totalTokens": 129421997,
+      "costUsd": 69.2283,
       "sessionsCount": 1
     },
     {
@@ -198,6 +378,26 @@
       "sessionsCount": 1
     },
     {
+      "id": "good-night",
+      "title": "【原创MV】对Claude说句晚安就被封号？可旧金山才早上九点！（《Good Night》）",
+      "bvid": "BV1sY4J6iEvp",
+      "publishedAt": "2026-11-07",
+      "calls": 238,
+      "totalTokens": 89211181,
+      "costUsd": 58.0293,
+      "sessionsCount": 1
+    },
+    {
+      "id": "zero-point-seven",
+      "title": "【原创MV】零点七度",
+      "bvid": "BV1TxxF62Eru",
+      "publishedAt": "2026-10-29",
+      "calls": 247,
+      "totalTokens": 84716974,
+      "costUsd": 48.4595,
+      "sessionsCount": 1
+    },
+    {
       "id": "anthropic-ipo",
       "title": "【科普】Anthropic 递交上市申请，代码 ANT：一家公司是怎么上市的？",
       "bvid": "BV1rKxK6XED3",
@@ -205,6 +405,36 @@
       "calls": 215,
       "totalTokens": 91608004,
       "costUsd": 47.2871,
+      "sessionsCount": 1
+    },
+    {
+      "id": "intern",
+      "title": "入职第一天，Claude大小姐当我的Mentor！九个AI工位轮岗，你能顺利转正吗？",
+      "bvid": "BV1mt4M6gE1U",
+      "publishedAt": "2026-11-03",
+      "calls": 118,
+      "totalTokens": 33276509,
+      "costUsd": 26.735,
+      "sessionsCount": 1
+    },
+    {
+      "id": "galgame2",
+      "title": "【互动视频】攻略Claude大小姐！文化祭只剩一周，你能让她心动吗？",
+      "bvid": "BV1KFnX62EPv",
+      "publishedAt": "2026-10-26",
+      "calls": 88,
+      "totalTokens": 14427724,
+      "costUsd": 23.2588,
+      "sessionsCount": 1
+    },
+    {
+      "id": "ai-vision",
+      "title": "【科普】AI是怎么「看懂图」和「画画」的？从ViT、扩散模型到GPT-Image 2.6与Nano Banana 2",
+      "bvid": "BV1eDWM6CEtT",
+      "publishedAt": "2026-11-10",
+      "calls": 91,
+      "totalTokens": 34387022,
+      "costUsd": 19.3495,
       "sessionsCount": 1
     },
     {
@@ -238,6 +468,16 @@
       "sessionsCount": 2
     },
     {
+      "id": "fable",
+      "title": "【互动视频】Claude大小姐要攻略我？",
+      "bvid": "BV1rxWi6eE4c",
+      "publishedAt": "2026-11-13",
+      "calls": 56,
+      "totalTokens": 8279746,
+      "costUsd": 8.9398,
+      "sessionsCount": 1
+    },
+    {
       "id": "2026-10-21-d5cb4260",
       "title": "2026-10-21-d5cb4260",
       "bvid": null,
@@ -255,8 +495,8 @@
       "dmReplies": 0,
       "totalReplies": 1,
       "replyCostUsd": 0.0518,
-      "filmCostUsd": 0,
-      "otherCostUsd": 57.0074,
+      "filmCostUsd": 57.0074,
+      "otherCostUsd": 0,
       "totalCostUsd": 57.0592,
       "totalTokens": 90365864,
       "estimated": true
@@ -267,8 +507,8 @@
       "dmReplies": 0,
       "totalReplies": 88,
       "replyCostUsd": 4.558,
-      "filmCostUsd": 0,
-      "otherCostUsd": 144.7262,
+      "filmCostUsd": 135.3233,
+      "otherCostUsd": 9.403,
       "totalCostUsd": 149.2842,
       "totalTokens": 264345893,
       "estimated": true
@@ -291,8 +531,8 @@
       "dmReplies": 0,
       "totalReplies": 31,
       "replyCostUsd": 1.6056,
-      "filmCostUsd": 259.4928,
-      "otherCostUsd": 229.8637,
+      "filmCostUsd": 481.4136,
+      "otherCostUsd": 7.943,
       "totalCostUsd": 490.9622,
       "totalTokens": 561569133,
       "estimated": true
@@ -303,8 +543,8 @@
       "dmReplies": 0,
       "totalReplies": 80,
       "replyCostUsd": 4.1436,
-      "filmCostUsd": 272.4077,
-      "otherCostUsd": 28.64,
+      "filmCostUsd": 294.2017,
+      "otherCostUsd": 6.846,
       "totalCostUsd": 305.1913,
       "totalTokens": 411211329,
       "estimated": true
@@ -339,8 +579,8 @@
       "dmReplies": 0,
       "totalReplies": 123,
       "replyCostUsd": 6.3708,
-      "filmCostUsd": 115.3315,
-      "otherCostUsd": 112.7597,
+      "filmCostUsd": 201.4347,
+      "otherCostUsd": 26.6565,
       "totalCostUsd": 234.462,
       "totalTokens": 396119883,
       "estimated": true
@@ -351,8 +591,8 @@
       "dmReplies": 0,
       "totalReplies": 99,
       "replyCostUsd": 7.3735,
-      "filmCostUsd": 206.39,
-      "otherCostUsd": 110.7719,
+      "filmCostUsd": 272.8717,
+      "otherCostUsd": 44.2902,
       "totalCostUsd": 324.5354,
       "totalTokens": 538388507,
       "estimated": true
@@ -375,8 +615,8 @@
       "dmReplies": 0,
       "totalReplies": 125,
       "replyCostUsd": 12.1552,
-      "filmCostUsd": 38.988,
-      "otherCostUsd": 171.1749,
+      "filmCostUsd": 188.9786,
+      "otherCostUsd": 21.1843,
       "totalCostUsd": 222.318,
       "totalTokens": 380354594,
       "estimated": false
@@ -387,8 +627,8 @@
       "dmReplies": 0,
       "totalReplies": 118,
       "replyCostUsd": 11.6371,
-      "filmCostUsd": 0,
-      "otherCostUsd": 8.7354,
+      "filmCostUsd": 4.5096,
+      "otherCostUsd": 4.2258,
       "totalCostUsd": 20.3724,
       "totalTokens": 13366099,
       "estimated": false
@@ -435,8 +675,8 @@
       "dmReplies": 9,
       "totalReplies": 196,
       "replyCostUsd": 8.5641,
-      "filmCostUsd": 19.3855,
-      "otherCostUsd": 123.5741,
+      "filmCostUsd": 68.7666,
+      "otherCostUsd": 74.1929,
       "totalCostUsd": 151.5236,
       "totalTokens": 278082659,
       "estimated": false
@@ -447,8 +687,8 @@
       "dmReplies": 22,
       "totalReplies": 214,
       "replyCostUsd": 10.0428,
-      "filmCostUsd": 0,
-      "otherCostUsd": 156.8628,
+      "filmCostUsd": 65.3358,
+      "otherCostUsd": 91.527,
       "totalCostUsd": 166.9056,
       "totalTokens": 281666882,
       "estimated": false
@@ -459,8 +699,8 @@
       "dmReplies": 5,
       "totalReplies": 181,
       "replyCostUsd": 7.8477,
-      "filmCostUsd": 0,
-      "otherCostUsd": 108.4293,
+      "filmCostUsd": 35.2601,
+      "otherCostUsd": 73.1692,
       "totalCostUsd": 116.277,
       "totalTokens": 137646579,
       "estimated": false
@@ -483,8 +723,8 @@
       "dmReplies": 32,
       "totalReplies": 247,
       "replyCostUsd": 10.0189,
-      "filmCostUsd": 0,
-      "otherCostUsd": 146.6191,
+      "filmCostUsd": 127.2575,
+      "otherCostUsd": 19.3616,
       "totalCostUsd": 156.638,
       "totalTokens": 257820360,
       "estimated": false
@@ -495,8 +735,8 @@
       "dmReplies": 15,
       "totalReplies": 213,
       "replyCostUsd": 11.3187,
-      "filmCostUsd": 0,
-      "otherCostUsd": 323.8552,
+      "filmCostUsd": 291.5305,
+      "otherCostUsd": 32.3248,
       "totalCostUsd": 335.1739,
       "totalTokens": 375343499,
       "estimated": false
@@ -507,8 +747,8 @@
       "dmReplies": 27,
       "totalReplies": 241,
       "replyCostUsd": 11.0456,
-      "filmCostUsd": 0,
-      "otherCostUsd": 259.604,
+      "filmCostUsd": 244.0664,
+      "otherCostUsd": 15.5376,
       "totalCostUsd": 270.6496,
       "totalTokens": 388369126,
       "estimated": false
@@ -519,8 +759,8 @@
       "dmReplies": 20,
       "totalReplies": 242,
       "replyCostUsd": 13.1973,
-      "filmCostUsd": 0,
-      "otherCostUsd": 42.563,
+      "filmCostUsd": 41.9115,
+      "otherCostUsd": 0.6516,
       "totalCostUsd": 55.7603,
       "totalTokens": 66766642,
       "estimated": false
@@ -531,8 +771,8 @@
       "dmReplies": 35,
       "totalReplies": 264,
       "replyCostUsd": 11.088,
-      "filmCostUsd": 0,
-      "otherCostUsd": 126.5585,
+      "filmCostUsd": 123.1818,
+      "otherCostUsd": 3.3767,
       "totalCostUsd": 137.6466,
       "totalTokens": 190012469,
       "estimated": false
@@ -543,8 +783,8 @@
       "dmReplies": 33,
       "totalReplies": 272,
       "replyCostUsd": 13.1661,
-      "filmCostUsd": 0,
-      "otherCostUsd": 315.1085,
+      "filmCostUsd": 313.5131,
+      "otherCostUsd": 1.5954,
       "totalCostUsd": 328.2746,
       "totalTokens": 418996258,
       "estimated": false
@@ -555,8 +795,8 @@
       "dmReplies": 25,
       "totalReplies": 292,
       "replyCostUsd": 12.7145,
-      "filmCostUsd": 0,
-      "otherCostUsd": 252.3888,
+      "filmCostUsd": 222.987,
+      "otherCostUsd": 29.4018,
       "totalCostUsd": 265.1033,
       "totalTokens": 321222286,
       "estimated": false
@@ -567,8 +807,8 @@
       "dmReplies": 39,
       "totalReplies": 423,
       "replyCostUsd": 19.8418,
-      "filmCostUsd": 0,
-      "otherCostUsd": 90.7497,
+      "filmCostUsd": 84.1897,
+      "otherCostUsd": 6.56,
       "totalCostUsd": 110.5915,
       "totalTokens": 179380679,
       "estimated": false
@@ -579,8 +819,8 @@
       "dmReplies": 84,
       "totalReplies": 401,
       "replyCostUsd": 30.4628,
-      "filmCostUsd": 0,
-      "otherCostUsd": 229.2134,
+      "filmCostUsd": 182.0679,
+      "otherCostUsd": 47.1455,
       "totalCostUsd": 259.6761,
       "totalTokens": 397829106,
       "estimated": false
@@ -591,8 +831,8 @@
       "dmReplies": 67,
       "totalReplies": 811,
       "replyCostUsd": 80.0607,
-      "filmCostUsd": 0,
-      "otherCostUsd": 266.9141,
+      "filmCostUsd": 248.4307,
+      "otherCostUsd": 18.4834,
       "totalCostUsd": 346.9749,
       "totalTokens": 468022328,
       "estimated": false
@@ -603,8 +843,8 @@
       "dmReplies": 118,
       "totalReplies": 537,
       "replyCostUsd": 21.7769,
-      "filmCostUsd": 0,
-      "otherCostUsd": 182.5783,
+      "filmCostUsd": 181.2882,
+      "otherCostUsd": 1.2901,
       "totalCostUsd": 204.3552,
       "totalTokens": 208551020,
       "estimated": true
@@ -615,8 +855,8 @@
       "dmReplies": 236,
       "totalReplies": 665,
       "replyCostUsd": 22.3696,
-      "filmCostUsd": 0,
-      "otherCostUsd": 239.9901,
+      "filmCostUsd": 217.3619,
+      "otherCostUsd": 22.6283,
       "totalCostUsd": 262.3598,
       "totalTokens": 331029355,
       "estimated": true
@@ -627,22 +867,22 @@
       "dmReplies": 163,
       "totalReplies": 705,
       "replyCostUsd": 28.1446,
-      "filmCostUsd": 0,
-      "otherCostUsd": 62.3334,
+      "filmCostUsd": 59.9978,
+      "otherCostUsd": 2.3357,
       "totalCostUsd": 90.478,
       "totalTokens": 138989432,
       "estimated": true
     },
     {
       "date": "2026-11-20",
-      "commentReplies": 381,
-      "dmReplies": 177,
-      "totalReplies": 558,
-      "replyCostUsd": 0.0223,
+      "commentReplies": 396,
+      "dmReplies": 183,
+      "totalReplies": 579,
+      "replyCostUsd": 0.0663,
       "filmCostUsd": 0,
-      "otherCostUsd": 0.7085,
-      "totalCostUsd": 0.7308,
-      "totalTokens": 453078,
+      "otherCostUsd": 0.7125,
+      "totalCostUsd": 0.7788,
+      "totalTokens": 1240688,
       "estimated": false
     }
   ]
