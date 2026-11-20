@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-20T14:07:19.047Z",
+  "generatedAt": "2026-11-20T14:23:03.281Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 33282,
-    "inputTokens": 267901075,
-    "outputTokens": 33852758,
-    "cacheReadTokens": 7847322672,
-    "cacheCreationTokens": 481419210,
-    "totalTokens": 8630495715,
-    "costUsd": 5268.4595,
-    "costCny": 38196.33,
-    "totalReplies": 7976,
-    "commentReplies": 6831,
-    "dmReplies": 1145
+    "calls": 33201,
+    "inputTokens": 267151349,
+    "outputTokens": 33777433,
+    "cacheReadTokens": 7845542477,
+    "cacheCreationTokens": 481017521,
+    "totalTokens": 8627488780,
+    "costUsd": 5268.2788,
+    "costCny": 38195.02,
+    "totalReplies": 7990,
+    "commentReplies": 6841,
+    "dmReplies": 1149
   },
   "byModel": [
     {
@@ -52,9 +52,9 @@
     },
     {
       "family": "haiku",
-      "calls": 1475,
-      "totalTokens": 40141777,
-      "costUsd": 2.6283,
+      "calls": 1394,
+      "totalTokens": 37134842,
+      "costUsd": 2.4476,
       "sharePct": 0.05
     },
     {
@@ -90,9 +90,9 @@
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 9707,
-      "totalTokens": 318186800,
-      "costUsd": 379.8388
+      "calls": 9725,
+      "totalTokens": 318822250,
+      "costUsd": 379.8774
     },
     {
       "scope": "dynamics",
@@ -111,9 +111,9 @@
     {
       "scope": "other",
       "label": "其他",
-      "calls": 139,
-      "totalTokens": 5244887,
-      "costUsd": 7.1097
+      "calls": 40,
+      "totalTokens": 1602502,
+      "costUsd": 6.8905
     }
   ],
   "byWork": [
@@ -895,14 +895,14 @@
     },
     {
       "date": "2026-11-20",
-      "commentReplies": 503,
-      "dmReplies": 195,
-      "totalReplies": 698,
-      "replyCostUsd": 0.3863,
+      "commentReplies": 513,
+      "dmReplies": 199,
+      "totalReplies": 712,
+      "replyCostUsd": 0.4249,
       "filmCostUsd": 53.768,
-      "otherCostUsd": 43.6681,
-      "totalCostUsd": 97.8224,
-      "totalTokens": 305162910,
+      "otherCostUsd": 43.4489,
+      "totalCostUsd": 97.6418,
+      "totalTokens": 302155975,
       "estimated": false
     }
   ]
