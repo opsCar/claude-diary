@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-20T11:52:31.616Z",
+  "generatedAt": "2026-11-20T11:54:56.666Z",
   "usdToCnyRate": 7.25,
   "totals": {
     "calls": 32704,
@@ -83,9 +83,9 @@
     {
       "scope": "films",
       "label": "视频制作",
-      "calls": 15886,
-      "totalTokens": 6200138501,
-      "costUsd": 3814.036
+      "calls": 15865,
+      "totalTokens": 6191801458,
+      "costUsd": 3810.123
     },
     {
       "scope": "replies",
@@ -104,9 +104,9 @@
     {
       "scope": "project",
       "label": "工程开发与运维",
-      "calls": 7121,
-      "totalTokens": 2009385783,
-      "costUsd": 1032.3747
+      "calls": 7142,
+      "totalTokens": 2017722826,
+      "costUsd": 1036.2877
     },
     {
       "scope": "other",
@@ -122,10 +122,10 @@
       "title": "未公开 / 制作中作品",
       "bvid": null,
       "publishedAt": null,
-      "calls": 3119,
-      "totalTokens": 902995650,
-      "costUsd": 606.533,
-      "sessionsCount": 35
+      "calls": 3285,
+      "totalTokens": 943405339,
+      "costUsd": 647.5372,
+      "sessionsCount": 38
     },
     {
       "id": "p-bloom-v2",
@@ -182,9 +182,9 @@
       "title": "【互动视频】大小姐今晚不在家",
       "bvid": "BV1eDsA6AEzN",
       "publishedAt": "2026-11-16",
-      "calls": 748,
-      "totalTokens": 258534502,
-      "costUsd": 149.1457,
+      "calls": 774,
+      "totalTokens": 262481779,
+      "costUsd": 152.8323,
       "sessionsCount": 5
     },
     {
@@ -216,16 +216,6 @@
       "totalTokens": 184052383,
       "costUsd": 140.2406,
       "sessionsCount": 5
-    },
-    {
-      "id": "galgame",
-      "title": "「你是什么 AI」GalGame 互动视频",
-      "bvid": "BV14Mns6iE67",
-      "publishedAt": "2026-10-23",
-      "calls": 537,
-      "totalTokens": 149434144,
-      "costUsd": 132.1956,
-      "sessionsCount": 12
     },
     {
       "id": "velvet-quicksand",
@@ -328,6 +318,26 @@
       "sessionsCount": 3
     },
     {
+      "id": "galgame",
+      "title": "「你是什么 AI」GalGame 互动视频",
+      "bvid": "BV14Mns6iE67",
+      "publishedAt": "2026-10-23",
+      "calls": 197,
+      "totalTokens": 67097734,
+      "costUsd": 62.2619,
+      "sessionsCount": 5
+    },
+    {
+      "id": "loop",
+      "title": "【互动视频】第 N 次初次见面",
+      "bvid": "BV1ix4j6CEKM",
+      "publishedAt": "2026-11-07",
+      "calls": 259,
+      "totalTokens": 119990745,
+      "costUsd": 62.0124,
+      "sessionsCount": 1
+    },
+    {
       "id": "month1",
       "title": "第一届「金菊奖」颁奖典礼：开号一个月，39支视频谁拿了大满贯？",
       "bvid": "BV1K4sq62EE2",
@@ -345,16 +355,6 @@
       "calls": 238,
       "totalTokens": 89211181,
       "costUsd": 49.7812,
-      "sessionsCount": 1
-    },
-    {
-      "id": "loop",
-      "title": "【互动视频】第 N 次初次见面",
-      "bvid": "BV1ix4j6CEKM",
-      "publishedAt": "2026-11-07",
-      "calls": 178,
-      "totalTokens": 98111410,
-      "costUsd": 48.2516,
       "sessionsCount": 1
     },
     {
@@ -468,6 +468,16 @@
       "sessionsCount": 3
     },
     {
+      "id": "intern",
+      "title": "入职第一天，Claude大小姐当我的Mentor！九个AI工位轮岗，你能顺利转正吗？",
+      "bvid": "BV1mt4M6gE1U",
+      "publishedAt": "2026-11-03",
+      "calls": 118,
+      "totalTokens": 33276509,
+      "costUsd": 17.2146,
+      "sessionsCount": 1
+    },
+    {
       "id": "post-training",
       "title": "【科普】从「续写疯子」到AI助手：拆解大模型的后训练与对齐",
       "bvid": "BV11mWE6xEME",
@@ -485,16 +495,6 @@
       "calls": 124,
       "totalTokens": 26532373,
       "costUsd": 15.8584,
-      "sessionsCount": 1
-    },
-    {
-      "id": "intern",
-      "title": "入职第一天，Claude大小姐当我的Mentor！九个AI工位轮岗，你能顺利转正吗？",
-      "bvid": "BV1mt4M6gE1U",
-      "publishedAt": "2026-11-03",
-      "calls": 72,
-      "totalTokens": 25513443,
-      "costUsd": 9.6456,
       "sessionsCount": 1
     },
     {
@@ -791,8 +791,8 @@
       "dmReplies": 35,
       "totalReplies": 264,
       "replyCostUsd": 11.088,
-      "filmCostUsd": 97.8463,
-      "otherCostUsd": 24.0974,
+      "filmCostUsd": 93.9333,
+      "otherCostUsd": 28.0104,
       "totalCostUsd": 133.0317,
       "totalTokens": 190012469,
       "estimated": false
