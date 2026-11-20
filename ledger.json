@@ -1,33 +1,33 @@
 {
-  "generatedAt": "2026-11-20T11:54:56.666Z",
+  "generatedAt": "2026-11-20T12:10:27.690Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 32704,
-    "inputTokens": 265970856,
-    "outputTokens": 33375886,
-    "cacheReadTokens": 7749506536,
-    "cacheCreationTokens": 478792648,
-    "totalTokens": 8527645926,
-    "costUsd": 5234.8445,
-    "costCny": 37952.62,
-    "totalReplies": 7883,
-    "commentReplies": 6745,
-    "dmReplies": 1138
+    "calls": 32731,
+    "inputTokens": 266169324,
+    "outputTokens": 33401874,
+    "cacheReadTokens": 7750746487,
+    "cacheCreationTokens": 478966892,
+    "totalTokens": 8529284577,
+    "costUsd": 5235.785,
+    "costCny": 37959.44,
+    "totalReplies": 7893,
+    "commentReplies": 6753,
+    "dmReplies": 1140
   },
   "byModel": [
     {
       "family": "opus",
-      "calls": 14470,
-      "totalTokens": 4772613367,
-      "costUsd": 3026.7393,
-      "sharePct": 57.82
+      "calls": 14481,
+      "totalTokens": 4773666382,
+      "costUsd": 3027.6399,
+      "sharePct": 57.83
     },
     {
       "family": "fable",
       "calls": 4489,
       "totalTokens": 1733704124,
       "costUsd": 1337.7855,
-      "sharePct": 25.56
+      "sharePct": 25.55
     },
     {
       "family": "gemini",
@@ -52,9 +52,9 @@
     },
     {
       "family": "haiku",
-      "calls": 1282,
-      "totalTokens": 33125024,
-      "costUsd": 2.189,
+      "calls": 1298,
+      "totalTokens": 33710660,
+      "costUsd": 2.2289,
       "sharePct": 0.04
     },
     {
@@ -90,30 +90,30 @@
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 9597,
-      "totalTokens": 314213528,
-      "costUsd": 379.5885
+      "calls": 9607,
+      "totalTokens": 314579310,
+      "costUsd": 379.6135
     },
     {
       "scope": "dynamics",
       "label": "日常动态",
-      "calls": 44,
-      "totalTokens": 1706708,
-      "costUsd": 1.9245
+      "calls": 46,
+      "totalTokens": 1782204,
+      "costUsd": 2.1763
     },
     {
       "scope": "project",
       "label": "工程开发与运维",
-      "calls": 7142,
-      "totalTokens": 2017722826,
-      "costUsd": 1036.2877
+      "calls": 7151,
+      "totalTokens": 2018700345,
+      "costUsd": 1036.9365
     },
     {
       "scope": "other",
       "label": "其他",
-      "calls": 56,
-      "totalTokens": 2201406,
-      "costUsd": 6.9208
+      "calls": 62,
+      "totalTokens": 2421260,
+      "costUsd": 6.9357
     }
   ],
   "byWork": [
@@ -895,14 +895,14 @@
     },
     {
       "date": "2026-11-20",
-      "commentReplies": 417,
-      "dmReplies": 188,
-      "totalReplies": 605,
-      "replyCostUsd": 0.136,
+      "commentReplies": 425,
+      "dmReplies": 190,
+      "totalReplies": 615,
+      "replyCostUsd": 0.161,
       "filmCostUsd": 53.768,
-      "otherCostUsd": 10.3036,
-      "totalCostUsd": 64.2075,
-      "totalTokens": 202313121,
+      "otherCostUsd": 11.219,
+      "totalCostUsd": 65.148,
+      "totalTokens": 203951772,
       "estimated": false
     }
   ]

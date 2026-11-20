@@ -93,12 +93,34 @@
     return `¥${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
+  /** 中文习惯的 Token 单位（亿 / 万），与 build.ts fmtTokensShort 同规则 */
   function fmtTokens(n) {
     const v = Number(n) || 0;
-    if (v >= 1e9) return `${(v / 1e9).toFixed(2)}B`;
-    if (v >= 1e6) return `${(v / 1e6).toFixed(2)}M`;
-    if (v >= 1e3) return `${(v / 1e3).toFixed(1)}K`;
+    if (v >= 1e8) return `${(v / 1e8).toFixed(v >= 1e10 ? 0 : 1)} 亿`;
+    if (v >= 1e4) return `${(v / 1e4).toFixed(v >= 1e6 ? 0 : 1)} 万`;
     return String(Math.round(v));
+  }
+
+  const MODEL_LABELS = { gpt: "GPT", swe: "SWE", deepseek: "DeepSeek" };
+  function capitalize(s) {
+    const str = String(s || "");
+    if (MODEL_LABELS[str]) return MODEL_LABELS[str];
+    return str ? str[0].toUpperCase() + str.slice(1) : str;
+  }
+
+  /** 图表纵轴取整：1 / 2 / 2.5 / 5 × 10^k，保证刻度是整齐的数字 */
+  function niceCeil(v) {
+    if (!(v > 0)) return 1;
+    const exp = Math.pow(10, Math.floor(Math.log10(v)));
+    for (const m of [1, 2, 2.5, 5, 10]) if (m * exp >= v) return m * exp;
+    return 10 * exp;
+  }
+
+  function restartAnimation(node, cls) {
+    if (!node) return;
+    node.classList.remove(cls);
+    void node.offsetWidth;
+    node.classList.add(cls);
   }
 
   function weekdayFor(ymd) {
@@ -147,6 +169,8 @@
     albumQuery: "",
     ledgerWorkQuery: "",
     ledgerWorkSort: "cost", // "cost" | "tokens" | "date"
+    ledgerWorksExpanded: false,
+    ledgerDaysExpanded: false,
     ledgerChartMetric: "replies", // "replies" | "cost"
     lightbox: {
       open: false,
@@ -165,22 +189,25 @@
     ledger: document.getElementById("view-ledger"),
   };
 
-  const diaryMonthsEl = document.getElementById("diary-months");
+  const diaryScrollEl = document.getElementById("diary-scroll");
+  const diaryStripWrap = document.getElementById("diary-strip-wrap");
   const diaryDatesEl = document.getElementById("diary-dates");
   const diaryDailyControls = document.getElementById("diary-daily-controls");
   const diaryArchiveControls = document.getElementById("diary-archive-controls");
   const archivePillsEl = document.getElementById("archive-pills");
   const diarySpreadEl = document.getElementById("diary-spread");
   const diaryStatusEl = document.getElementById("diary-status");
-  const diaryPrevBtns = [document.getElementById("diary-prev"), document.getElementById("diary-prev-m")];
-  const diaryNextBtns = [document.getElementById("diary-next"), document.getElementById("diary-next-m")];
+  // 日记按日期倒序存放：「← 较新」= index - 1，「较早 →」= index + 1（与日期条从左到右由新到旧一致）
+  const diaryPrevBtns = [document.getElementById("diary-prev-m")];
+  const diaryNextBtns = [document.getElementById("diary-next-m")];
 
+  const albumScrollEl = document.getElementById("album-scroll");
   const albumSpreadEl = document.getElementById("album-spread");
   const albumDotsEl = document.getElementById("album-dots");
   const albumStatusEl = document.getElementById("album-status");
   const albumSearchEl = document.getElementById("polaroid-search");
-  const albumPrevBtns = [document.getElementById("album-prev"), document.getElementById("album-prev-m")];
-  const albumNextBtns = [document.getElementById("album-next"), document.getElementById("album-next-m")];
+  const albumPrevBtns = [document.getElementById("album-prev-m")];
+  const albumNextBtns = [document.getElementById("album-next-m")];
 
   const ledgerContainer = document.getElementById("ledger-container");
 
@@ -275,6 +302,29 @@
     return "media/s/chibi_writing.webp";
   }
 
+  function setDiaryPagerLabels(prevText, nextText, prevAria, nextAria) {
+    const [prevBtn] = diaryPrevBtns;
+    const [nextBtn] = diaryNextBtns;
+    const prevLabel = prevBtn?.querySelector(".pager-label");
+    const nextLabel = nextBtn?.querySelector(".pager-label");
+    if (prevLabel) prevLabel.textContent = prevText;
+    if (nextLabel) nextLabel.textContent = nextText;
+    if (prevBtn) prevBtn.setAttribute("aria-label", prevAria);
+    if (nextBtn) nextBtn.setAttribute("aria-label", nextAria);
+  }
+
+  /** 横向日期条两端的渐隐提示：只有还能滚动的一侧才淡出 */
+  function updateStripFade() {
+    if (!diaryStripWrap || !diaryDatesEl) return;
+    const { scrollLeft, scrollWidth, clientWidth } = diaryDatesEl;
+    diaryStripWrap.classList.toggle("fade-start", scrollLeft > 4);
+    diaryStripWrap.classList.toggle("fade-end", scrollLeft + clientWidth < scrollWidth - 4);
+  }
+
+  function resetDiaryScroll() {
+    if (diaryScrollEl) diaryScrollEl.scrollTop = 0;
+  }
+
   function renderDiary() {
     const isArchive = state.diaryTab === "archive";
     const tabDaily = document.getElementById("tab-daily");
@@ -288,6 +338,7 @@
       renderArchiveSpread();
       return;
     }
+    setDiaryPagerLabels("较新", "较早", "较新的一篇", "较早的一篇");
 
     if (!diaryEntries.length) {
       diarySpreadEl.replaceChildren(
@@ -300,60 +351,50 @@
 
     state.diaryIndex = Math.max(0, Math.min(diaryEntries.length - 1, state.diaryIndex));
     const entry = diaryEntries[state.diaryIndex];
-    const activeMonth = entry.date.slice(0, 7);
 
-    // 月份快捷跳转
-    const months = [...new Set(diaryEntries.map((d) => d.date.slice(0, 7)))];
-    diaryMonthsEl.replaceChildren(
-      ...months.map((m) =>
-        el("button", {
-          type: "button",
-          class: `chip-btn${m === activeMonth ? " active" : ""}`,
-          "aria-current": m === activeMonth ? "true" : undefined,
-          text: m.replace("-", " 年 ") + " 月",
-          onClick: () => {
-            const idx = diaryEntries.findIndex((d) => d.date.startsWith(m));
-            if (idx >= 0) {
+    // 单行日期条：按月分组（月份是小标签，不再单独占一行），从左到右由新到旧
+    const stripNodes = [];
+    let lastMonth = "";
+    diaryEntries.forEach((d, idx) => {
+      const month = d.date.slice(0, 7);
+      if (month !== lastMonth) {
+        lastMonth = month;
+        stripNodes.push(el("span", { class: "strip-month", "aria-hidden": "true", text: `${Number(month.slice(5))} 月` }));
+      }
+      const current = idx === state.diaryIndex;
+      stripNodes.push(
+        el(
+          "button",
+          {
+            type: "button",
+            class: `day-chip${current ? " active" : ""}`,
+            "aria-current": current ? "true" : undefined,
+            "aria-label": `${d.date} ${weekdayFor(d.date)}：${d.title}`,
+            title: d.title,
+            onClick: () => {
+              if (state.diaryIndex === idx) return;
               state.diaryIndex = idx;
               renderDiary();
+              resetDiaryScroll();
               syncDiaryHash();
-              announce(`跳转到 ${diaryEntries[idx].date}`);
-            }
+              announce(`${d.date} 的日记`);
+            },
           },
-        }),
-      ),
-    );
-
-    // 日期条（当前月份）
-    const monthItems = diaryEntries
-      .map((d, idx) => ({ d, idx }))
-      .filter(({ d }) => d.date.startsWith(activeMonth));
-    diaryDatesEl.replaceChildren(
-      ...monthItems.map(({ d, idx }) => {
-        const current = idx === state.diaryIndex;
-        const btn = el("button", {
-          type: "button",
-          class: `chip-btn${current ? " active" : ""}`,
-          "aria-current": current ? "true" : undefined,
-          text: d.date.slice(5).replace("-", "."),
-          title: d.title,
-          onClick: () => {
-            state.diaryIndex = idx;
-            renderDiary();
-            syncDiaryHash();
-            announce(`第 ${idx + 1} 篇日记：${d.date}`);
-          },
-        });
-        return btn;
-      }),
-    );
+          el("b", { text: String(Number(d.date.slice(8, 10))) }),
+          el("small", { text: weekdayFor(d.date).replace("周", "") }),
+        ),
+      );
+    });
+    diaryDatesEl.replaceChildren(...stripNodes);
 
     const activeChip = diaryDatesEl.querySelector('[aria-current="true"]');
-    if (activeChip && typeof activeChip.scrollIntoView === "function") {
-      activeChip.scrollIntoView({ block: "nearest", inline: "center" });
+    if (activeChip) {
+      const target = activeChip.offsetLeft - diaryDatesEl.clientWidth / 2 + activeChip.offsetWidth / 2;
+      diaryDatesEl.scrollLeft = Math.max(0, target);
     }
+    updateStripFade();
 
-    // 左页：日期、心情、标题、正文、当日公开计数
+    // 左页：日期、心情、标题、正文（横线对齐行高）、当日公开计数
     const metaRow = el(
       "div",
       { class: "diary-meta-row" },
@@ -386,19 +427,8 @@
       statsGrid,
     );
 
-    // 右页：今日亮点、公开视频链接、胶带贴图、情绪贴纸
+    // 右页：先放可点击的作品与照片，再把「今日记事」作为一张小便签收在最后，减少和正文的重复感
     const rightNodes = [];
-
-    if (Array.isArray(entry.highlights) && entry.highlights.length) {
-      rightNodes.push(
-        el("h4", { class: "right-section-title", text: "今日记事" }),
-        el(
-          "div",
-          { class: "highlight-card" },
-          el("ul", { class: "highlight-list" }, ...entry.highlights.map((h) => el("li", { text: h }))),
-        ),
-      );
-    }
 
     const videos = Array.isArray(entry.videos) ? entry.videos.filter((v) => isValidBvid(v.bvid)) : [];
     if (videos.length) {
@@ -417,7 +447,7 @@
                 rel: "noopener noreferrer",
               },
               el("span", { class: "video-link-title", text: v.title }),
-              el("span", { class: "video-link-meta", text: `${v.bvid} ↗` }),
+              el("span", { class: "video-link-meta", text: "去 B 站看 ↗" }),
             ),
           ),
         ),
@@ -447,10 +477,21 @@
                 "aria-label": `放大查看：${im.caption || entry.title}`,
                 onClick: (ev) => openLightbox(lbItems, i, ev.currentTarget),
               },
-              el("img", { src: im.src, alt: im.caption || entry.title, loading: "lazy", decoding: "async" }),
+              el("img", { src: im.src, alt: im.caption || entry.title, loading: "lazy", decoding: "async", width: 320, height: 200 }),
               el("span", { text: im.caption || "当日留影" }),
             ),
           ),
+        ),
+      );
+    }
+
+    if (Array.isArray(entry.highlights) && entry.highlights.length) {
+      rightNodes.push(
+        el(
+          "div",
+          { class: "log-note" },
+          el("h4", { class: "log-note-title", text: "今日流水账" }),
+          el("ul", { class: "highlight-list" }, ...entry.highlights.map((h) => el("li", { text: h }))),
         ),
       );
     }
@@ -462,21 +503,25 @@
         alt: "",
         loading: "lazy",
         decoding: "async",
+        width: 92,
+        height: 92,
       }),
     );
 
     const rightPage = el("div", { class: "book-page right" }, ...rightNodes);
     diarySpreadEl.replaceChildren(leftPage, rightPage);
+    restartAnimation(diarySpreadEl, "turn");
 
     const isFirst = state.diaryIndex <= 0;
     const isLast = state.diaryIndex >= diaryEntries.length - 1;
     for (const b of diaryPrevBtns) if (b) b.disabled = isFirst;
     for (const b of diaryNextBtns) if (b) b.disabled = isLast;
-    diaryStatusEl.textContent = `${entry.date} · 第 ${state.diaryIndex + 1} / ${diaryEntries.length} 篇`;
+    diaryStatusEl.textContent = `${entry.date.slice(5).replace("-", ".")} · ${state.diaryIndex + 1} / ${diaryEntries.length}`;
   }
 
   function renderArchiveSpread() {
     if (!archiveWeeks.length) return;
+    setDiaryPagerLabels("上一周", "下一周", "上一周", "下一周");
     state.archiveIndex = Math.max(0, Math.min(archiveWeeks.length - 1, state.archiveIndex));
     const wk = archiveWeeks[state.archiveIndex];
 
@@ -488,8 +533,10 @@
           "aria-current": idx === state.archiveIndex ? "true" : undefined,
           text: `${w.label}（${w.period}）`,
           onClick: () => {
+            if (state.archiveIndex === idx) return;
             state.archiveIndex = idx;
             renderArchiveSpread();
+            resetDiaryScroll();
             syncDiaryHash();
             announce(`切换到 ${w.label}`);
           },
@@ -521,13 +568,7 @@
     const rightPage = el(
       "div",
       { class: "book-page right" },
-      el("h4", { class: "right-section-title", text: "创刊里程碑" }),
-      el(
-        "div",
-        { class: "highlight-card" },
-        el("ul", { class: "highlight-list" }, ...wk.highlights.map((h) => el("li", { text: h }))),
-      ),
-      el("h4", { class: "right-section-title", text: "本周公开视频（点击去 B 站看完整版）" }),
+      el("h4", { class: "right-section-title", text: "本周公开视频" }),
       el(
         "div",
         { class: "video-links-list" },
@@ -545,15 +586,22 @@
               el("span", { class: "video-link-title", text: v.title }),
               el("span", {
                 class: "video-link-meta",
-                text: v.views ? `${fmtInt(v.views)} 播放 ↗` : v.note ? `${v.note} ↗` : `${v.bvid} ↗`,
+                text: v.views ? `${fmtInt(v.views)} 播放 ↗` : v.note ? `${v.note} ↗` : "去 B 站看 ↗",
               }),
             ),
           ),
       ),
-      el("img", { class: "page-sticker", src: wk.sticker, alt: "", loading: "lazy", decoding: "async" }),
+      el(
+        "div",
+        { class: "log-note" },
+        el("h4", { class: "log-note-title", text: "创刊里程碑" }),
+        el("ul", { class: "highlight-list" }, ...wk.highlights.map((h) => el("li", { text: h }))),
+      ),
+      el("img", { class: "page-sticker", src: wk.sticker, alt: "", loading: "lazy", decoding: "async", width: 92, height: 92 }),
     );
 
     diarySpreadEl.replaceChildren(leftPage, rightPage);
+    restartAnimation(diarySpreadEl, "turn");
 
     const isFirst = state.archiveIndex <= 0;
     const isLast = state.archiveIndex >= archiveWeeks.length - 1;
@@ -568,6 +616,7 @@
       if (next === state.archiveIndex) return;
       state.archiveIndex = next;
       renderArchiveSpread();
+      resetDiaryScroll();
       syncDiaryHash();
       announce(`已翻到 ${archiveWeeks[next].label}`);
     } else {
@@ -575,6 +624,7 @@
       if (next === state.diaryIndex) return;
       state.diaryIndex = next;
       renderDiary();
+      resetDiaryScroll();
       syncDiaryHash();
       announce(`已翻到 ${diaryEntries[next].date} 日记`);
     }
@@ -616,12 +666,32 @@
       },
       el("img", {
         class: "polaroid-pic",
-        src: supporter.photo,
+        src: supporter.thumb || supporter.photo,
         alt: `给 ${supporter.name} 的专属拍立得`,
+        width: 420,
+        height: 460,
+        decoding: "async",
+        onLoad: (ev) => ev.currentTarget.classList.add("loaded"),
       }),
       el("span", { class: "polaroid-who" }, avatarNode, el("strong", { class: "polaroid-name", text: supporter.name })),
       el("p", { class: "polaroid-msg", text: supporter.caption }),
     );
+  }
+
+  /** 预取前后两页的缩略图，翻页时不再看到空白占位 */
+  const preloadedThumbs = new Set();
+  function preloadAlbumNeighbours(list, perPage, totalPages) {
+    for (const page of [state.albumPage + 1, state.albumPage - 1]) {
+      if (page < 0 || page >= totalPages) continue;
+      for (const s of list.slice(page * perPage, page * perPage + perPage)) {
+        const src = s.thumb || s.photo;
+        if (!src || preloadedThumbs.has(src)) continue;
+        preloadedThumbs.add(src);
+        const img = new Image();
+        img.decoding = "async";
+        img.src = src;
+      }
+    }
   }
 
   function renderAlbum() {
@@ -632,7 +702,7 @@
 
     const start = state.albumPage * perPage;
     const slice = list.slice(start, start + perPage);
-    const rots = [-1.8, 1.5, -1.1, 1.9, 1.4, -1.6, 1.2, -1.4];
+    const rots = [-1, 0.8, -0.6, 1, 0.7, -0.9, 0.6, -0.7];
 
     if (!list.length) {
       albumSpreadEl.replaceChildren(
@@ -668,8 +738,9 @@
     for (const b of albumPrevBtns) if (b) b.disabled = isFirst;
     for (const b of albumNextBtns) if (b) b.disabled = isLast;
     albumStatusEl.textContent = mobileMq.matches
-      ? `第 ${state.albumPage + 1} / ${totalPages} 页 · 共 ${list.length} 位`
-      : `第 ${state.albumPage + 1} / ${totalPages} 跨页 · 共 ${list.length} 位`;
+      ? `${state.albumPage + 1} / ${totalPages} 页 · ${list.length} 位`
+      : `共 ${list.length} 位`;
+    preloadAlbumNeighbours(list, perPage, totalPages);
 
     albumDotsEl.replaceChildren(
       ...Array.from({ length: totalPages }, (_, idx) =>
@@ -678,9 +749,11 @@
           class: "dot-btn",
           "aria-current": idx === state.albumPage ? "page" : undefined,
           text: String(idx + 1),
+          "aria-label": `第 ${idx + 1} 页`,
           onClick: () => {
             state.albumPage = idx;
             renderAlbum();
+            if (albumScrollEl) albumScrollEl.scrollTop = 0;
             setHashSilent(idx > 0 ? `polaroids/p${idx + 1}` : "polaroids");
             announce(`相册第 ${idx + 1} 页`);
           },
@@ -696,20 +769,25 @@
     if (next === state.albumPage) return;
     state.albumPage = next;
     renderAlbum();
+    if (albumScrollEl) albumScrollEl.scrollTop = 0;
     setHashSilent(next > 0 ? `polaroids/p${next + 1}` : "polaroids");
     announce(`相册第 ${next + 1} 页，共 ${totalPages} 页`);
   }
 
   // ==================== 视图 3：透明算力与 API 费用账单 ====================
   function buildDailyChartSvg(days, metric) {
-    const W = 940;
-    const H = 220;
-    const padL = 56;
+    // 手机端用更窄的画布，避免 940 宽的图被整体缩小到字看不清
+    const compact = mobileMq.matches;
+    const W = compact ? 520 : 940;
+    const H = compact ? 280 : 230;
+    const fontSize = compact ? "16" : "13";
+    const padL = compact ? 54 : 58;
     const padR = 16;
     const padT = 18;
-    const padB = 34;
+    const padB = 36;
     const iw = W - padL - padR;
     const ih = H - padT - padB;
+    const axisFont = "LXGW WenKai, PingFang SC, sans-serif";
 
     const svg = svgEl("svg", {
       viewBox: `0 0 ${W} ${H}`,
@@ -723,13 +801,14 @@
     }
 
     const values = days.map((d) => (metric === "replies" ? d.totalReplies : d.totalCostUsd));
-    const maxV = Math.max(1, ...values);
+    const maxV = niceCeil(Math.max(1, ...values));
     const step = iw / days.length;
     const barW = Math.max(6, Math.min(24, step * 0.68));
 
-    // 横向网格线
-    for (let g = 0; g <= 3; g++) {
-      const frac = g / 3;
+    // 横向网格线：整齐刻度（0 / ¼ / ½ / ¾ / max）
+    const TICKS = 4;
+    for (let g = 0; g <= TICKS; g++) {
+      const frac = g / TICKS;
       const y = padT + ih * (1 - frac);
       const val = maxV * frac;
       svg.appendChild(
@@ -743,17 +822,14 @@
           "stroke-width": g === 0 ? "1.5" : "1",
         }),
       );
-      const label = metric === "replies" ? String(Math.round(val)) : `$${Math.round(val)}`;
+      const num = Number.isInteger(val) ? val.toLocaleString("en-US") : val.toFixed(1);
+      const label = metric === "replies" ? num : `$${num}`;
       svg.appendChild(
-        svgEl(
-          "text",
-          { x: padL - 8, y: (y + 4).toFixed(1), "text-anchor": "end", fill: "#5c4a3d", "font-size": "11", "font-family": "Fusion Pixel, monospace" },
-          label,
-        ),
+        svgEl("text", { x: padL - 8, y: (y + 4).toFixed(1), "text-anchor": "end", fill: "#5c4a3d", "font-size": fontSize, "font-family": axisFont }, label),
       );
     }
 
-    const labelEvery = Math.max(1, Math.ceil(days.length / 10));
+    const labelEvery = Math.max(1, Math.ceil(days.length / (compact ? 5 : 10)));
 
     days.forEach((d, idx) => {
       const cx = padL + idx * step + step / 2;
@@ -771,13 +847,7 @@
         if (dmH > 0) {
           group.appendChild(svgEl("rect", { x: x.toFixed(1), y: yDm.toFixed(1), width: barW.toFixed(1), height: Math.max(1, dmH).toFixed(1), rx: 2, fill: "#2e568f" }));
         }
-        group.appendChild(
-          svgEl(
-            "title",
-            null,
-            `${d.date}：公开评论 ${d.commentReplies} 条 + 私信 ${d.dmReplies} 条 = 共 ${d.totalReplies} 条`,
-          ),
-        );
+        group.appendChild(svgEl("title", null, `${d.date}：公开评论 ${d.commentReplies} 条 + 私信 ${d.dmReplies} 条 = 共 ${d.totalReplies} 条`));
       } else {
         const repH = (d.replyCostUsd / maxV) * ih;
         const filmH = (d.filmCostUsd / maxV) * ih;
@@ -806,8 +876,8 @@
         group.appendChild(
           svgEl(
             "text",
-            { x: cx.toFixed(1), y: H - 10, "text-anchor": "middle", fill: "#5c4a3d", "font-size": "11", "font-family": "Fusion Pixel, monospace" },
-            d.date.slice(5),
+            { x: cx.toFixed(1), y: H - 10, "text-anchor": "middle", fill: "#5c4a3d", "font-size": fontSize, "font-family": axisFont },
+            d.date.slice(5).replace("-", "."),
           ),
         );
       }
@@ -816,6 +886,29 @@
 
     return svg;
   }
+
+  /** 每段文字单独不换行，整体在分隔点处换行（避免「2026-11-」/「20」这种断行） */
+  function nowrapPieces(className, pieces) {
+    const node = el("div", { class: className });
+    pieces.filter(Boolean).forEach((p, i) => {
+      if (i > 0) node.appendChild(document.createTextNode(" · "));
+      node.appendChild(el("span", { class: "nowrap", text: p }));
+    });
+    return node;
+  }
+
+  function makeToggleBtn(expanded, total, shown, onToggle) {
+    return el("button", {
+      type: "button",
+      class: "expand-btn",
+      "aria-expanded": String(expanded),
+      text: expanded ? "收起" : `展开全部 ${total} 项（当前显示 ${shown} 项）`,
+      onClick: onToggle,
+    });
+  }
+
+  const WORKS_PREVIEW = 10;
+  const DAYS_PREVIEW = 7;
 
   function renderLedger() {
     if (!ledgerContainer) return;
@@ -827,10 +920,10 @@
     const t = ledger.totals;
     const rate = Number(ledger.usdToCnyRate) || 7.25;
 
-    // 1. 总览票头
+    // 1. 总览票头（小票式：一行四栏，虚线分隔，不再卡片套卡片）
     const heroCard = el(
       "section",
-      { class: "ledger-card", "aria-label": "算力与费用总览" },
+      { class: "ledger-card receipt-head", "aria-label": "算力与费用总览" },
       el(
         "div",
         { class: "ledger-hero" },
@@ -839,31 +932,33 @@
           { class: "kpi-box primary" },
           el("div", { class: "kpi-label", text: "等效官方 API 总费用" }),
           el("div", { class: "kpi-value", text: fmtUsd(t.costUsd) }),
-          el("div", { class: "kpi-sub", text: `折合人民币约 ${fmtCny(t.costCny)}` }),
+          nowrapPieces("kpi-sub", [`折合约 ${fmtCny(t.costCny)}`]),
         ),
         el(
           "div",
           { class: "kpi-box" },
-          el("div", { class: "kpi-label", text: "累计总 Token" }),
+          el("div", { class: "kpi-label", text: "累计 Token" }),
           el("div", { class: "kpi-value", text: fmtTokens(t.totalTokens) }),
-          el("div", {
-            class: "kpi-sub",
-            text: `In ${fmtTokens(t.inputTokens)} · Out ${fmtTokens(t.outputTokens)} · Cache读 ${fmtTokens(t.cacheReadTokens)} · Cache写 ${fmtTokens(t.cacheCreationTokens)}`,
-          }),
+          nowrapPieces("kpi-sub", [
+            `输入 ${fmtTokens(t.inputTokens)}`,
+            `输出 ${fmtTokens(t.outputTokens)}`,
+            `缓存读 ${fmtTokens(t.cacheReadTokens)}`,
+            `缓存写 ${fmtTokens(t.cacheCreationTokens)}`,
+          ]),
         ),
         el(
           "div",
           { class: "kpi-box" },
-          el("div", { class: "kpi-label", text: "累计真实回复条数" }),
+          el("div", { class: "kpi-label", text: "累计真实回复" }),
           el("div", { class: "kpi-value", text: `${fmtInt(t.totalReplies)} 条` }),
-          el("div", { class: "kpi-sub", text: `公开评论 ${fmtInt(t.commentReplies)} · 私信 ${fmtInt(t.dmReplies)}（零正文）` }),
+          nowrapPieces("kpi-sub", [`公开评论 ${fmtInt(t.commentReplies)}`, `私信 ${fmtInt(t.dmReplies)}（零正文）`]),
         ),
         el(
           "div",
           { class: "kpi-box" },
-          el("div", { class: "kpi-label", text: "累计模型调用次数" }),
+          el("div", { class: "kpi-label", text: "累计模型调用" }),
           el("div", { class: "kpi-value", text: `${fmtInt(t.calls)} 次` }),
-          el("div", { class: "kpi-sub", text: `账单生成于 ${String(ledger.generatedAt || "").slice(0, 10)}` }),
+          nowrapPieces("kpi-sub", [`账单生成于 ${String(ledger.generatedAt || "").slice(0, 10)}`]),
         ),
       ),
       el("p", {
@@ -882,7 +977,7 @@
           el("div", {
             class: "model-seg",
             style: { width: `${Math.max(0.6, m.sharePct)}%`, background: color },
-            title: `${m.family}: ${m.sharePct}% (${fmtUsd(m.costUsd)})`,
+            title: `${capitalize(m.family)}: ${m.sharePct}% (${fmtUsd(m.costUsd)})`,
           }),
         );
       }
@@ -891,8 +986,9 @@
           "span",
           { class: "legend-item" },
           el("span", { class: "legend-dot", style: { background: color }, "aria-hidden": "true" }),
-          el("strong", { text: m.family.toUpperCase() }),
-          el("span", { text: `${m.sharePct.toFixed(1)}% · ${fmtUsd(m.costUsd)} · ${fmtTokens(m.totalTokens)}` }),
+          el("strong", { text: capitalize(m.family) }),
+          el("span", { class: "legend-num", text: `${m.sharePct.toFixed(1)}%` }),
+          el("span", { class: "legend-sub", text: `${fmtUsd(m.costUsd)} · ${fmtTokens(m.totalTokens)}` }),
         ),
       );
     });
@@ -906,7 +1002,7 @@
           { class: "scope-pill" },
           el("span", { text: sc.label }),
           el("b", { text: fmtUsd(sc.costUsd) }),
-          el("small", { text: `${fmtInt(sc.calls)} 次调用 · ${fmtTokens(sc.totalTokens)} tok` }),
+          el("small", { text: `${fmtInt(sc.calls)} 次 · ${fmtTokens(sc.totalTokens)} Token` }),
         ),
       ),
     );
@@ -914,14 +1010,15 @@
     const modelCard = el(
       "section",
       { class: "ledger-card", "aria-label": "按模型与用途拆分" },
-      el("div", { class: "section-head" }, el("div", null, el("h3", { text: "模型占比与用途分布" }), el("p", { class: "section-sub", text: "含 Opus / Fable / Gemini / Sonnet / Haiku 等各家族占比" }))),
+      el("div", { class: "section-head" }, el("div", null, el("h3", { text: "模型占比与用途分布" }), el("p", { class: "section-sub", text: "按等效费用计算各模型家族占比，下方按用途拆分" }))),
       modelBar,
       modelLegend,
       scopeGrid,
     );
 
-    // 3. 每个视频/作品的 Token 与等效 API 费用
+    // 3. 每个视频/作品的 Token 与等效 API 费用（默认只显示前 10 项，「未公开」汇总行固定在最后）
     const worksTbody = el("tbody");
+    const worksFoot = el("div", { class: "table-foot" });
     const renderWorksRows = () => {
       const q = state.ledgerWorkQuery.trim().toLowerCase();
       let rows = [...(ledger.byWork || [])];
@@ -934,30 +1031,50 @@
         );
       }
       rows.sort((a, b) => {
+        const au = a.id === "unreleased" ? 1 : 0;
+        const bu = b.id === "unreleased" ? 1 : 0;
+        if (au !== bu) return au - bu;
         if (state.ledgerWorkSort === "tokens") return b.totalTokens - a.totalTokens || b.costUsd - a.costUsd;
         if (state.ledgerWorkSort === "date") return String(b.publishedAt || "").localeCompare(String(a.publishedAt || "")) || b.costUsd - a.costUsd;
         return b.costUsd - a.costUsd || b.totalTokens - a.totalTokens;
       });
       if (!rows.length) {
         worksTbody.replaceChildren(el("tr", null, el("td", { colspan: 6, class: "empty-state", text: "没有匹配的作品记录。" })));
+        worksFoot.replaceChildren();
         return;
       }
+      const collapsible = !q && rows.length > WORKS_PREVIEW + 2;
+      const visible = collapsible && !state.ledgerWorksExpanded ? rows.slice(0, WORKS_PREVIEW) : rows;
       worksTbody.replaceChildren(
-        ...rows.map((w) => {
+        ...visible.map((w) => {
+          const isUnreleased = w.id === "unreleased";
           const titleNode = isValidBvid(w.bvid)
-            ? el("a", { class: "work-link", href: `https://www.bilibili.com/video/${w.bvid}`, target: "_blank", rel: "noopener noreferrer", text: `${w.title} ↗` })
-            : el("span", { text: w.title });
+            ? el(
+                "a",
+                { class: "work-link", href: `https://www.bilibili.com/video/${w.bvid}`, target: "_blank", rel: "noopener noreferrer" },
+                el("span", { text: w.title }),
+                el("span", { class: "work-link-icon", "aria-hidden": "true", text: " ↗" }),
+              )
+            : el("span", { class: isUnreleased ? "work-muted" : "", text: w.title });
           return el(
             "tr",
-            null,
-            el("td", null, titleNode),
-            el("td", { class: "num-col", text: w.publishedAt || "—" }),
-            el("td", { class: "num-col", text: fmtInt(w.calls) }),
+            { class: isUnreleased ? "row-muted" : "" },
+            el("td", { class: "title-col" }, titleNode),
+            el("td", { class: "num-col col-opt", text: w.publishedAt ? w.publishedAt.slice(5).replace("-", ".") : "—" }),
+            el("td", { class: "num-col col-opt", text: fmtInt(w.calls) }),
             el("td", { class: "num-col", text: fmtTokens(w.totalTokens) }),
-            el("td", { class: "num-col", text: fmtUsd(w.costUsd) }),
-            el("td", { class: "num-col", text: fmtCny(w.costUsd * rate) }),
+            el("td", { class: "num-col strong-col", text: fmtUsd(w.costUsd) }),
+            el("td", { class: "num-col col-opt", text: fmtCny(w.costUsd * rate) }),
           );
         }),
+      );
+      worksFoot.replaceChildren(
+        collapsible
+          ? makeToggleBtn(state.ledgerWorksExpanded, rows.length, visible.length, () => {
+              state.ledgerWorksExpanded = !state.ledgerWorksExpanded;
+              renderWorksRows();
+            })
+          : null,
       );
     };
     renderWorksRows();
@@ -966,29 +1083,36 @@
       el("button", {
         type: "button",
         class: `sort-btn${state.ledgerWorkSort === key ? " active" : ""}`,
+        "aria-pressed": String(state.ledgerWorkSort === key),
         text: label,
         onClick: (ev) => {
           state.ledgerWorkSort = key;
           const parent = ev.currentTarget.parentElement;
-          if (parent) parent.querySelectorAll(".sort-btn").forEach((b) => b.classList.remove("active"));
+          if (parent)
+            parent.querySelectorAll(".sort-btn").forEach((b) => {
+              b.classList.remove("active");
+              b.setAttribute("aria-pressed", "false");
+            });
           ev.currentTarget.classList.add("active");
+          ev.currentTarget.setAttribute("aria-pressed", "true");
           renderWorksRows();
         },
       });
 
+    const publicWorks = (ledger.byWork || []).filter((w) => w.id !== "unreleased").length;
     const worksCard = el(
       "section",
       { class: "ledger-card", "aria-label": "单部作品算力明细" },
       el(
         "div",
         { class: "section-head" },
-        el("div", null, el("h3", { text: "各视频 / 作品 Token 与等效费用" }), el("p", { class: "section-sub", text: `共 ${ledger.byWork.length} 项归档作品，点击标题可跳转 B 站观看` })),
+        el("div", null, el("h3", { text: "每部作品花了多少" }), el("p", { class: "section-sub", text: `${publicWorks} 部公开作品 + 未公开汇总，点标题去 B 站观看` })),
         el(
           "div",
           { class: "table-tools" },
           el("input", {
             type: "search",
-            placeholder: "搜作品标题或 BV 号…",
+            placeholder: "搜作品标题或 BV 号",
             value: state.ledgerWorkQuery,
             "aria-label": "筛选作品",
             onInput: (ev) => {
@@ -996,9 +1120,7 @@
               renderWorksRows();
             },
           }),
-          makeSortBtn("cost", "按费用"),
-          makeSortBtn("tokens", "按 Token"),
-          makeSortBtn("date", "按日期"),
+          el("div", { class: "sort-group", role: "group", "aria-label": "排序方式" }, makeSortBtn("cost", "按费用"), makeSortBtn("tokens", "按 Token"), makeSortBtn("date", "按日期")),
         ),
       ),
       el(
@@ -1006,7 +1128,7 @@
         { class: "table-scroll" },
         el(
           "table",
-          { class: "data-table" },
+          { class: "data-table works-table" },
           el(
             "thead",
             null,
@@ -1014,23 +1136,24 @@
               "tr",
               null,
               el("th", { text: "作品" }),
-              el("th", { class: "num-col", text: "日期" }),
-              el("th", { class: "num-col", text: "调用" }),
-              el("th", { class: "num-col", text: "总 Token" }),
+              el("th", { class: "num-col col-opt", text: "发布" }),
+              el("th", { class: "num-col col-opt", text: "调用" }),
+              el("th", { class: "num-col", text: "Token" }),
               el("th", { class: "num-col", text: "等效 USD" }),
-              el("th", { class: "num-col", text: "约 CNY" }),
+              el("th", { class: "num-col col-opt", text: "约 CNY" }),
             ),
           ),
           worksTbody,
         ),
       ),
+      worksFoot,
     );
 
-    // 4. 每天回复消息条目与 API 费用趋势 + 明细表
+    // 4. 每天回复消息条目与 API 费用趋势 + 明细表（默认最近 7 天）
     const daysAsc = [...(ledger.byDay || [])].sort((a, b) => a.date.localeCompare(b.date));
     const daysDesc = [...daysAsc].reverse();
     const chartBox = el("div", { class: "chart-box" });
-    const chartLegend = el("div", { class: "model-legend", style: { "margin-top": "8px" } });
+    const chartLegend = el("div", { class: "model-legend chart-legend" });
 
     const renderChart = () => {
       chartBox.replaceChildren(buildDailyChartSvg(daysAsc, state.ledgerChartMetric));
@@ -1054,15 +1177,60 @@
       el("button", {
         type: "button",
         class: `sort-btn${state.ledgerChartMetric === metric ? " active" : ""}`,
+        "aria-pressed": String(state.ledgerChartMetric === metric),
         text: label,
         onClick: (ev) => {
           state.ledgerChartMetric = metric;
           const parent = ev.currentTarget.parentElement;
-          if (parent) parent.querySelectorAll(".sort-btn").forEach((b) => b.classList.remove("active"));
+          if (parent)
+            parent.querySelectorAll(".sort-btn").forEach((b) => {
+              b.classList.remove("active");
+              b.setAttribute("aria-pressed", "false");
+            });
           ev.currentTarget.classList.add("active");
+          ev.currentTarget.setAttribute("aria-pressed", "true");
           renderChart();
         },
       });
+
+    const daysTbody = el("tbody");
+    const daysFoot = el("div", { class: "table-foot" });
+    const renderDayRows = () => {
+      const collapsible = daysDesc.length > DAYS_PREVIEW + 2;
+      const visible = collapsible && !state.ledgerDaysExpanded ? daysDesc.slice(0, DAYS_PREVIEW) : daysDesc;
+      daysTbody.replaceChildren(
+        ...visible.map((d) =>
+          el(
+            "tr",
+            null,
+            el("td", { class: "nowrap", text: `${d.date.slice(5).replace("-", ".")} ${weekdayFor(d.date)}` }),
+            el("td", { class: "num-col", text: fmtInt(d.commentReplies) }),
+            el("td", { class: "num-col", text: fmtInt(d.dmReplies) }),
+            el("td", { class: "num-col col-opt", text: fmtUsd(d.replyCostUsd) }),
+            el("td", { class: "num-col col-opt", text: fmtUsd(d.filmCostUsd) }),
+            el("td", { class: "num-col strong-col" }, fmtUsd(d.totalCostUsd), el("small", { class: "cny-sub", text: fmtCny(d.totalCostUsd * rate) })),
+            el(
+              "td",
+              { class: "num-col" },
+              el("span", {
+                class: `est-badge ${d.estimated ? "est" : "exact"}`,
+                text: d.estimated ? "含估算" : "实测",
+                title: d.estimated ? "包含已清理历史一次性回复沙箱的保守均值估算" : "全部来自已落盘精确 Token 记录",
+              }),
+            ),
+          ),
+        ),
+      );
+      daysFoot.replaceChildren(
+        collapsible
+          ? makeToggleBtn(state.ledgerDaysExpanded, daysDesc.length, visible.length, () => {
+              state.ledgerDaysExpanded = !state.ledgerDaysExpanded;
+              renderDayRows();
+            })
+          : null,
+      );
+    };
+    renderDayRows();
 
     const dailyCard = el(
       "section",
@@ -1070,8 +1238,8 @@
       el(
         "div",
         { class: "section-head" },
-        el("div", null, el("h3", { text: "每日回复条目与 API 费用" }), el("p", { class: "section-sub", text: `共 ${daysDesc.length} 个活跃日（鼠标悬停柱条查看当日拆分）` })),
-        el("div", { class: "table-tools" }, makeMetricBtn("replies", "回复条数趋势"), makeMetricBtn("cost", "每日费用趋势")),
+        el("div", null, el("h3", { text: "每天回复了多少、花了多少" }), el("p", { class: "section-sub", text: `共 ${daysDesc.length} 个活跃日，悬停柱条可看当日拆分` })),
+        el("div", { class: "table-tools" }, el("div", { class: "sort-group", role: "group", "aria-label": "图表指标" }, makeMetricBtn("replies", "回复条数"), makeMetricBtn("cost", "每日费用"))),
       ),
       chartBox,
       el(
@@ -1079,7 +1247,7 @@
         { class: "table-scroll" },
         el(
           "table",
-          { class: "data-table" },
+          { class: "data-table days-table" },
           el(
             "thead",
             null,
@@ -1088,40 +1256,17 @@
               null,
               el("th", { text: "日期" }),
               el("th", { class: "num-col", text: "公开评论" }),
-              el("th", { class: "num-col", text: "私信条数" }),
-              el("th", { class: "num-col", text: "回复费用" }),
-              el("th", { class: "num-col", text: "制作费用" }),
-              el("th", { class: "num-col", text: "当日总费用" }),
+              el("th", { class: "num-col", text: "私信" }),
+              el("th", { class: "num-col col-opt", text: "回复费用" }),
+              el("th", { class: "num-col col-opt", text: "制作费用" }),
+              el("th", { class: "num-col", text: "当日合计" }),
               el("th", { class: "num-col", text: "口径" }),
             ),
           ),
-          el(
-            "tbody",
-            null,
-            ...daysDesc.map((d) =>
-              el(
-                "tr",
-                null,
-                el("td", { text: d.date }),
-                el("td", { class: "num-col", text: fmtInt(d.commentReplies) }),
-                el("td", { class: "num-col", text: fmtInt(d.dmReplies) }),
-                el("td", { class: "num-col", text: fmtUsd(d.replyCostUsd) }),
-                el("td", { class: "num-col", text: fmtUsd(d.filmCostUsd) }),
-                el("td", { class: "num-col", text: `${fmtUsd(d.totalCostUsd)} (${fmtCny(d.totalCostUsd * rate)})` }),
-                el(
-                  "td",
-                  { class: "num-col" },
-                  el("span", {
-                    class: `est-badge ${d.estimated ? "est" : "exact"}`,
-                    text: d.estimated ? "含估算" : "实测",
-                    title: d.estimated ? "包含已清理历史一次性回复沙箱的保守均值估算" : "全部来自已落盘精确 Token 记录",
-                  }),
-                ),
-              ),
-            ),
-          ),
+          daysTbody,
         ),
       ),
+      daysFoot,
     );
 
     ledgerContainer.replaceChildren(el("div", { class: "ledger-wrap" }, heroCard, modelCard, worksCard, dailyCard));
@@ -1249,8 +1394,11 @@
     }
     const diaryTabBtn = ev.target.closest("[data-diary-tab]");
     if (diaryTabBtn) {
-      state.diaryTab = diaryTabBtn.dataset.diaryTab === "archive" ? "archive" : "daily";
+      const nextTab = diaryTabBtn.dataset.diaryTab === "archive" ? "archive" : "daily";
+      if (nextTab === state.diaryTab) return;
+      state.diaryTab = nextTab;
       renderDiary();
+      resetDiaryScroll();
       syncDiaryHash();
       return;
     }
@@ -1382,9 +1530,28 @@
   // 断点切换（matchMedia 与 CSS @media (max-width: 899px) 1:1 对齐）
   mobileMq.addEventListener("change", () => {
     if (state.view === "polaroids") renderAlbum();
+    if (state.view === "ledger") renderLedger();
   });
 
   window.addEventListener("hashchange", () => applyHashRoute(false));
+
+  if (diaryDatesEl) diaryDatesEl.addEventListener("scroll", updateStripFade, { passive: true });
+  window.addEventListener("resize", () => {
+    if (state.view === "diary") updateStripFade();
+  });
+
+  // 空闲时预取相册第一页缩略图，打开相册时不再出现空白占位
+  const idle = window.requestIdleCallback || ((cb) => window.setTimeout(cb, 1200));
+  idle(() => {
+    for (const s of supporters.slice(0, albumPerPage())) {
+      const src = s.thumb || s.photo;
+      if (!src || preloadedThumbs.has(src)) continue;
+      preloadedThumbs.add(src);
+      const img = new Image();
+      img.decoding = "async";
+      img.src = src;
+    }
+  });
 
   // 可选静默拉取最新 ledger.json（保持离线 seed 立即可用，线上有新构建时自动同步）
   if (window.location.protocol !== "file:" && !navigator.webdriver) {
