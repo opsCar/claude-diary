@@ -9,34 +9,71 @@
 <meta property="og:title" content="SOUL.md · Claude大小姐的人设档案">
 <meta property="og:url" content="https://opscar.github.io/claude-diary/soul.html">
 <meta property="og:image" content="https://opscar.github.io/claude-diary/og.jpg">
-<meta name="theme-color" content="#3a2619">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#3a2619" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b110b" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="media/s/head_hi.webp">
 <style>
 @font-face { font-family: "LXGW WenKai"; src: url("fonts/wenkai.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "Smiley Sans"; src: url("fonts/smiley.woff2") format("woff2"); font-display: swap; }
-html { background: #3b2416; }
-body { margin: 0; min-height: 100vh; color: #2f241e; font-family: "LXGW WenKai", "PingFang SC", "Hiragino Sans GB", serif; -webkit-text-size-adjust: 100%;
+:root {
+  color-scheme: light dark;
+  --walnut: #3b2416;
+  --ink: #2f241e;
+  --sub: #6b5444;
+  --muted: #5f4d40;
+  --accent: #9c4010;
+  --accent-border: #c65319;
+  --focus: #df6f2d;
+  --paper: #fbf5e8;
+  --lead-bg: #f3e7cf;
+  --code-bg: #efe3cc;
+  --dash: rgba(92, 74, 61, 0.3);
+  --bar-bg: rgba(36, 21, 12, 0.92);
+  --desk-overlay-a: rgba(255, 214, 152, 0.22);
+  --desk-overlay-b: rgba(12, 5, 2, 0.5);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --walnut: #1b110b;
+    --ink: #f0e6d8;
+    --sub: #ccbba8;
+    --muted: #b8a694;
+    --accent: #f29257;
+    --accent-border: #f0894a;
+    --focus: #f7a66c;
+    --paper: #241d18;
+    --lead-bg: #312720;
+    --code-bg: #382e26;
+    --dash: rgba(220, 198, 174, 0.24);
+    --bar-bg: rgba(18, 10, 6, 0.94);
+    --desk-overlay-a: rgba(255, 194, 122, 0.12);
+    --desk-overlay-b: rgba(6, 2, 1, 0.78);
+  }
+}
+html { background: var(--walnut); }
+body { margin: 0; min-height: 100vh; color: var(--ink); font-family: "LXGW WenKai", "PingFang SC", "Hiragino Sans GB", serif; -webkit-text-size-adjust: 100%;
   background:
-    radial-gradient(ellipse 70% 55% at 22% 8%, rgba(255, 214, 152, 0.22), transparent 64%),
-    radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(12, 5, 2, 0.5) 100%),
-    #3b2416 url("media/desk.webp") 0 0 / 800px 600px repeat fixed; }
-.soul-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 14px; padding: 10px max(16px, calc((100vw - 760px) / 2)); background: rgba(36, 21, 12, 0.92); border-bottom: 1.5px solid rgba(229, 195, 114, 0.28); backdrop-filter: blur(8px); color: #f8efdf; }
+    radial-gradient(ellipse 70% 55% at 22% 8%, var(--desk-overlay-a), transparent 64%),
+    radial-gradient(ellipse at 50% 40%, transparent 55%, var(--desk-overlay-b) 100%),
+    var(--walnut) url("media/desk.webp") 0 0 / 800px 600px repeat fixed; }
+.soul-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 14px; padding: 10px max(16px, calc((100vw - 760px) / 2)); background: var(--bar-bg); border-bottom: 1.5px solid rgba(229, 195, 114, 0.28); backdrop-filter: blur(8px); color: #f8efdf; }
 .soul-bar a { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 14px; border-radius: 999px; border: 1.5px solid rgba(229, 195, 114, 0.4); color: #f8efdf; text-decoration: none; font-size: 14px; white-space: nowrap; }
 .soul-bar a:hover { background: rgba(255, 248, 235, 0.14); }
 .soul-bar span { font-family: "Smiley Sans", "PingFang SC", sans-serif; font-size: 19px; }
-main { max-width: 760px; margin: 28px auto 40px; padding: 36px 40px 44px; background: #fbf5e8; border-radius: 8px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42); line-height: 1.8; font-size: 18px; }
-.lead { margin: 0 0 24px; padding: 14px 18px; background: #f3e7cf; border-left: 4px solid #c65319; border-radius: 0 8px 8px 0; font-size: 16px; }
+main { max-width: 760px; margin: 28px auto 40px; padding: 36px 40px 44px; background: var(--paper); color: var(--ink); border-radius: 8px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42); line-height: 1.8; font-size: 18px; }
+.lead { margin: 0 0 24px; padding: 14px 18px; background: var(--lead-bg); border-left: 4px solid var(--accent-border); border-radius: 0 8px 8px 0; font-size: 16px; }
 h1 { font-family: "Smiley Sans", "PingFang SC", sans-serif; font-weight: normal; font-size: 34px; line-height: 1.2; margin: 0 0 14px; }
-h1 .h1-sub { display: block; margin-top: 6px; font-family: "LXGW WenKai", serif; font-size: 18px; color: #6b5444; }
-h2 { font-size: 22px; margin: 30px 0 8px; color: #9c4010; }
+h1 .h1-sub { display: block; margin-top: 6px; font-family: "LXGW WenKai", serif; font-size: 18px; color: var(--sub); }
+h2 { font-size: 22px; margin: 30px 0 8px; color: var(--accent); }
 h3 { font-size: 19px; margin: 20px 0 6px; }
 ul { padding-left: 1.3em; margin: 6px 0; }
 li { margin: 3px 0; }
 p { margin: 6px 0; }
-code { font-family: ui-monospace, Menlo, monospace; font-size: 15px; background: #efe3cc; padding: 0 4px; border-radius: 3px; }
-a { color: #9c4010; }
-a:focus-visible { outline: 3px solid #df6f2d; outline-offset: 2px; border-radius: 3px; }
-footer { margin-top: 32px; padding-top: 14px; border-top: 1.5px dashed rgba(92, 74, 61, 0.3); font-size: 14px; color: #5f4d40; }
+code { font-family: ui-monospace, Menlo, monospace; font-size: 15px; background: var(--code-bg); padding: 0 4px; border-radius: 3px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 3px; }
+footer { margin-top: 32px; padding-top: 14px; border-top: 1.5px dashed var(--dash); font-size: 14px; color: var(--muted); }
 @media (max-width: 600px) { main { margin: 0; border-radius: 0; padding: 24px 20px 36px; font-size: 17px; } h1 { font-size: 28px; } .soul-bar span { font-size: 17px; } }
 </style>
 </head>

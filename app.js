@@ -8,17 +8,23 @@
   const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 
   const MODEL_COLORS = {
-    opus: "#b84814",
-    fable: "#df8b2d",
-    gemini: "#2e568f",
-    sonnet: "#2e6e50",
-    gpt: "#7d4570",
-    haiku: "#4c8b9e",
-    compactor: "#8c6d53",
-    swe: "#6c7a89",
-    deepseek: "#3c73a8",
+    opus: "var(--m-opus)",
+    fable: "var(--m-fable)",
+    gemini: "var(--m-gemini)",
+    sonnet: "var(--m-sonnet)",
+    gpt: "var(--m-gpt)",
+    haiku: "var(--m-haiku)",
+    compactor: "var(--m-compactor)",
+    swe: "var(--m-swe)",
+    deepseek: "var(--m-deepseek)",
   };
-  const FALLBACK_COLORS = ["#9e6a46", "#6d8a67", "#7d6b91", "#a35b5b", "#5c7a8a"];
+  const FALLBACK_COLORS = [
+    "var(--m-fb-1)",
+    "var(--m-fb-2)",
+    "var(--m-fb-3)",
+    "var(--m-fb-4)",
+    "var(--m-fb-5)",
+  ];
 
   /** HTML 实体转义工具（备用防御；本脚本所有动态 DOM 均优先使用 textContent / createElement） */
   function esc(value) {
@@ -796,7 +802,7 @@
     });
 
     if (!days.length) {
-      svg.appendChild(svgEl("text", { x: W / 2, y: H / 2, "text-anchor": "middle", fill: "#5c4a3d", "font-size": "14" }, "暂无按天数据"));
+      svg.appendChild(svgEl("text", { x: W / 2, y: H / 2, "text-anchor": "middle", fill: "var(--soft)", "font-size": "14" }, "暂无按天数据"));
       return svg;
     }
 
@@ -817,7 +823,7 @@
           y1: y.toFixed(1),
           x2: W - padR,
           y2: y.toFixed(1),
-          stroke: "rgba(92,74,61,0.18)",
+          stroke: "var(--chart-grid)",
           "stroke-dasharray": g === 0 ? "" : "4 4",
           "stroke-width": g === 0 ? "1.5" : "1",
         }),
@@ -825,7 +831,7 @@
       const num = Number.isInteger(val) ? val.toLocaleString("en-US") : val.toFixed(1);
       const label = metric === "replies" ? num : `$${num}`;
       svg.appendChild(
-        svgEl("text", { x: padL - 8, y: (y + 4).toFixed(1), "text-anchor": "end", fill: "#5c4a3d", "font-size": fontSize, "font-family": axisFont }, label),
+        svgEl("text", { x: padL - 8, y: (y + 4).toFixed(1), "text-anchor": "end", fill: "var(--soft)", "font-size": fontSize, "font-family": axisFont }, label),
       );
     }
 
@@ -842,10 +848,10 @@
         const yComment = padT + ih - cH;
         const yDm = yComment - dmH;
         if (cH > 0) {
-          group.appendChild(svgEl("rect", { x: x.toFixed(1), y: yComment.toFixed(1), width: barW.toFixed(1), height: Math.max(1, cH).toFixed(1), rx: 2, fill: "#df6f2d" }));
+          group.appendChild(svgEl("rect", { x: x.toFixed(1), y: yComment.toFixed(1), width: barW.toFixed(1), height: Math.max(1, cH).toFixed(1), rx: 2, fill: "var(--chart-orange)" }));
         }
         if (dmH > 0) {
-          group.appendChild(svgEl("rect", { x: x.toFixed(1), y: yDm.toFixed(1), width: barW.toFixed(1), height: Math.max(1, dmH).toFixed(1), rx: 2, fill: "#2e568f" }));
+          group.appendChild(svgEl("rect", { x: x.toFixed(1), y: yDm.toFixed(1), width: barW.toFixed(1), height: Math.max(1, dmH).toFixed(1), rx: 2, fill: "var(--chart-blue)" }));
         }
         group.appendChild(svgEl("title", null, `${d.date}：公开评论 ${d.commentReplies} 条 + 私信 ${d.dmReplies} 条 = 共 ${d.totalReplies} 条`));
       } else {
@@ -854,9 +860,9 @@
         const othH = (d.otherCostUsd / maxV) * ih;
         let curY = padT + ih;
         const parts = [
-          [repH, "#df6f2d"],
-          [filmH, "#2e6e50"],
-          [othH, "#8c6d53"],
+          [repH, "var(--chart-orange)"],
+          [filmH, "var(--chart-green)"],
+          [othH, "var(--chart-brown)"],
         ];
         for (const [h, fill] of parts) {
           if (h <= 0) continue;
@@ -876,7 +882,7 @@
         group.appendChild(
           svgEl(
             "text",
-            { x: cx.toFixed(1), y: H - 10, "text-anchor": "middle", fill: "#5c4a3d", "font-size": fontSize, "font-family": axisFont },
+            { x: cx.toFixed(1), y: H - 10, "text-anchor": "middle", fill: "var(--soft)", "font-size": fontSize, "font-family": axisFont },
             d.date.slice(5).replace("-", "."),
           ),
         );
@@ -1159,14 +1165,14 @@
       chartBox.replaceChildren(buildDailyChartSvg(daysAsc, state.ledgerChartMetric));
       if (state.ledgerChartMetric === "replies") {
         chartLegend.replaceChildren(
-          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#df6f2d" } }), "公开评论回复"),
-          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#2e568f" } }), "私信回复（仅聚合条数）"),
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "var(--chart-orange)" } }), "公开评论回复"),
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "var(--chart-blue)" } }), "私信回复（仅聚合条数）"),
         );
       } else {
         chartLegend.replaceChildren(
-          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#df6f2d" } }), "评论/私信回复费用"),
-          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#2e6e50" } }), "视频制作费用"),
-          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "#8c6d53" } }), "工程运维/动态费用"),
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "var(--chart-orange)" } }), "评论/私信回复费用"),
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "var(--chart-green)" } }), "视频制作费用"),
+          el("span", { class: "legend-item" }, el("span", { class: "legend-dot", style: { background: "var(--chart-brown)" } }), "工程运维/动态费用"),
         );
       }
       chartBox.appendChild(chartLegend);

@@ -1,61 +1,61 @@
 {
-  "generatedAt": "2026-11-20T12:10:27.690Z",
+  "generatedAt": "2026-11-20T14:06:39.780Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 32731,
-    "inputTokens": 266169324,
-    "outputTokens": 33401874,
-    "cacheReadTokens": 7750746487,
-    "cacheCreationTokens": 478966892,
-    "totalTokens": 8529284577,
-    "costUsd": 5235.785,
-    "costCny": 37959.44,
-    "totalReplies": 7893,
-    "commentReplies": 6753,
-    "dmReplies": 1140
+    "calls": 33280,
+    "inputTokens": 267879025,
+    "outputTokens": 33851790,
+    "cacheReadTokens": 7847282526,
+    "cacheCreationTokens": 481409468,
+    "totalTokens": 8630422809,
+    "costUsd": 5268.4552,
+    "costCny": 38196.3,
+    "totalReplies": 7976,
+    "commentReplies": 6831,
+    "dmReplies": 1145
   },
   "byModel": [
     {
       "family": "opus",
-      "calls": 14481,
-      "totalTokens": 4773666382,
-      "costUsd": 3027.6399,
-      "sharePct": 57.83
+      "calls": 14855,
+      "totalTokens": 4868446403,
+      "costUsd": 3059.915,
+      "sharePct": 58.08
     },
     {
       "family": "fable",
       "calls": 4489,
       "totalTokens": 1733704124,
       "costUsd": 1337.7855,
-      "sharePct": 25.55
+      "sharePct": 25.39
     },
     {
       "family": "gemini",
       "calls": 4668,
       "totalTokens": 1267834927,
       "costUsd": 510.5138,
-      "sharePct": 9.75
+      "sharePct": 9.69
     },
     {
       "family": "sonnet",
       "calls": 6199,
       "totalTokens": 502549900,
       "costUsd": 279.0469,
-      "sharePct": 5.33
+      "sharePct": 5.3
     },
     {
       "family": "gpt",
       "calls": 865,
       "totalTokens": 156168843,
       "costUsd": 78.0068,
-      "sharePct": 1.49
+      "sharePct": 1.48
     },
     {
       "family": "haiku",
-      "calls": 1298,
-      "totalTokens": 33710660,
-      "costUsd": 2.2289,
-      "sharePct": 0.04
+      "calls": 1473,
+      "totalTokens": 40068871,
+      "costUsd": 2.6239,
+      "sharePct": 0.05
     },
     {
       "family": "deepseek",
@@ -90,9 +90,9 @@
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 9607,
-      "totalTokens": 314579310,
-      "costUsd": 379.6135
+      "calls": 9706,
+      "totalTokens": 318150347,
+      "costUsd": 379.8367
     },
     {
       "scope": "dynamics",
@@ -104,16 +104,16 @@
     {
       "scope": "project",
       "label": "工程开发与运维",
-      "calls": 7151,
-      "totalTokens": 2018700345,
-      "costUsd": 1036.9365
+      "calls": 7525,
+      "totalTokens": 2113480366,
+      "costUsd": 1069.2116
     },
     {
       "scope": "other",
       "label": "其他",
-      "calls": 62,
-      "totalTokens": 2421260,
-      "costUsd": 6.9357
+      "calls": 138,
+      "totalTokens": 5208434,
+      "costUsd": 7.1076
     }
   ],
   "byWork": [
@@ -895,14 +895,14 @@
     },
     {
       "date": "2026-11-20",
-      "commentReplies": 425,
-      "dmReplies": 190,
-      "totalReplies": 615,
-      "replyCostUsd": 0.161,
+      "commentReplies": 503,
+      "dmReplies": 195,
+      "totalReplies": 698,
+      "replyCostUsd": 0.3842,
       "filmCostUsd": 53.768,
-      "otherCostUsd": 11.219,
-      "totalCostUsd": 65.148,
-      "totalTokens": 203951772,
+      "otherCostUsd": 43.666,
+      "totalCostUsd": 97.8181,
+      "totalTokens": 305090004,
       "estimated": false
     }
   ]
