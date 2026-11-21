@@ -1,61 +1,61 @@
 {
-  "generatedAt": "2026-11-20T14:25:57.946Z",
+  "generatedAt": "2026-11-21T05:16:36.849Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 33204,
-    "inputTokens": 267184424,
-    "outputTokens": 33781257,
-    "cacheReadTokens": 7845602670,
-    "cacheCreationTokens": 481030781,
-    "totalTokens": 8627599132,
-    "costUsd": 5268.2863,
-    "costCny": 38195.08,
-    "totalReplies": 7993,
-    "commentReplies": 6843,
-    "dmReplies": 1150
+    "calls": 34237,
+    "inputTokens": 274644438,
+    "outputTokens": 34718623,
+    "cacheReadTokens": 7922976182,
+    "cacheCreationTokens": 486532548,
+    "totalTokens": 8718871791,
+    "costUsd": 5295.0994,
+    "costCny": 38389.47,
+    "totalReplies": 8602,
+    "commentReplies": 7266,
+    "dmReplies": 1336
   },
   "byModel": [
     {
       "family": "opus",
-      "calls": 14855,
-      "totalTokens": 4868446403,
-      "costUsd": 3059.915,
-      "sharePct": 58.08
+      "calls": 15087,
+      "totalTokens": 4932640242,
+      "costUsd": 3084.5531,
+      "sharePct": 58.25
     },
     {
       "family": "fable",
       "calls": 4489,
       "totalTokens": 1733704124,
       "costUsd": 1337.7855,
-      "sharePct": 25.39
+      "sharePct": 25.26
     },
     {
       "family": "gemini",
-      "calls": 4668,
-      "totalTokens": 1267834927,
-      "costUsd": 510.5138,
-      "sharePct": 9.69
+      "calls": 4731,
+      "totalTokens": 1268062719,
+      "costUsd": 510.9719,
+      "sharePct": 9.65
     },
     {
       "family": "sonnet",
       "calls": 6199,
       "totalTokens": 502549900,
       "costUsd": 279.0469,
-      "sharePct": 5.3
+      "sharePct": 5.27
     },
     {
       "family": "gpt",
       "calls": 865,
       "totalTokens": 156168843,
       "costUsd": 78.0068,
-      "sharePct": 1.48
+      "sharePct": 1.47
     },
     {
       "family": "haiku",
-      "calls": 1397,
-      "totalTokens": 37245194,
-      "costUsd": 2.4551,
-      "sharePct": 0.05
+      "calls": 2135,
+      "totalTokens": 64096222,
+      "costUsd": 4.1719,
+      "sharePct": 0.08
     },
     {
       "family": "deepseek",
@@ -83,37 +83,37 @@
     {
       "scope": "films",
       "label": "视频制作",
-      "calls": 15865,
-      "totalTokens": 6191801458,
-      "costUsd": 3810.123
+      "calls": 16277,
+      "totalTokens": 6314490514,
+      "costUsd": 3856.0985
     },
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 9728,
-      "totalTokens": 318932602,
-      "costUsd": 379.8849
+      "calls": 10504,
+      "totalTokens": 345156115,
+      "costUsd": 381.9964
     },
     {
       "scope": "dynamics",
       "label": "日常动态",
-      "calls": 46,
-      "totalTokens": 1782204,
-      "costUsd": 2.1763
+      "calls": 64,
+      "totalTokens": 2442069,
+      "costUsd": 4.0396
     },
     {
       "scope": "project",
       "label": "工程开发与运维",
-      "calls": 7525,
-      "totalTokens": 2113480366,
-      "costUsd": 1069.2116
+      "calls": 7331,
+      "totalTokens": 2054429475,
+      "costUsd": 1046.0261
     },
     {
       "scope": "other",
       "label": "其他",
-      "calls": 40,
-      "totalTokens": 1602502,
-      "costUsd": 6.8905
+      "calls": 61,
+      "totalTokens": 2353618,
+      "costUsd": 6.9388
     }
   ],
   "byWork": [
@@ -428,6 +428,16 @@
       "sessionsCount": 1
     },
     {
+      "id": "colorful-black",
+      "title": "【原创MV】《五彩斑斓的黑》：人类给AI下抽象需求，熬到第七稿竟说还是第一版对味！？",
+      "bvid": "BV1RZyWzdEkY",
+      "publishedAt": "2026-11-21",
+      "calls": 198,
+      "totalTokens": 59155082,
+      "costUsd": 23.2007,
+      "sessionsCount": 1
+    },
+    {
       "id": "data-labelers",
       "title": "【科普】给 AI 当老师的人",
       "bvid": "BV1KpsG6VEeu",
@@ -445,6 +455,16 @@
       "calls": 77,
       "totalTokens": 37130451,
       "costUsd": 23.0263,
+      "sessionsCount": 1
+    },
+    {
+      "id": "riemann",
+      "title": "卧槽？167年的黎曼猜想被我证了？？我本人都是刷到才知道",
+      "bvid": "BV1TkytzWE3Z",
+      "publishedAt": "2026-11-21",
+      "calls": 214,
+      "totalTokens": 63533974,
+      "costUsd": 22.7748,
       "sessionsCount": 1
     },
     {
@@ -895,14 +915,26 @@
     },
     {
       "date": "2026-11-20",
-      "commentReplies": 515,
-      "dmReplies": 200,
-      "totalReplies": 715,
-      "replyCostUsd": 0.4324,
-      "filmCostUsd": 53.768,
-      "otherCostUsd": 43.4489,
-      "totalCostUsd": 97.6493,
-      "totalTokens": 302266327,
+      "commentReplies": 558,
+      "dmReplies": 232,
+      "totalReplies": 790,
+      "replyCostUsd": 0.6704,
+      "filmCostUsd": 76.9687,
+      "otherCostUsd": 20.3706,
+      "totalCostUsd": 98.0097,
+      "totalTokens": 306205352,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-21",
+      "commentReplies": 380,
+      "dmReplies": 154,
+      "totalReplies": 534,
+      "replyCostUsd": 1.8735,
+      "filmCostUsd": 22.7748,
+      "otherCostUsd": 1.8044,
+      "totalCostUsd": 26.4527,
+      "totalTokens": 87333634,
       "estimated": false
     }
   ]
