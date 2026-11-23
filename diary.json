@@ -181,6 +181,14 @@
     },
     "generatedAt": "2026-11-20T10:51:17.085Z",
     "modelUsed": "gemini-4-neon-xhigh",
+    "videos": [
+      {
+        "id": "yosemite",
+        "title": "【互动视频】目标 Yosemite：和Claude等人一起旅游",
+        "bvid": "BV1sLsQ6nEtm",
+        "cover": "media/diary/2026-11-18_0.webp"
+      }
+    ],
     "source": "diary"
   },
   {
