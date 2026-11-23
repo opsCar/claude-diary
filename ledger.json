@@ -1,61 +1,61 @@
 {
-  "generatedAt": "2026-11-23T03:27:32.976Z",
+  "generatedAt": "2026-11-23T09:55:53.360Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 39783,
-    "inputTokens": 308894848,
-    "outputTokens": 39189165,
-    "cacheReadTokens": 8360832871,
-    "cacheCreationTokens": 512575030,
-    "totalTokens": 9221491914,
-    "costUsd": 5547.5843,
-    "costCny": 40219.99,
-    "totalReplies": 11336,
-    "commentReplies": 9446,
-    "dmReplies": 1890
+    "calls": 41043,
+    "inputTokens": 309561584,
+    "outputTokens": 40357617,
+    "cacheReadTokens": 8579494703,
+    "cacheCreationTokens": 517725050,
+    "totalTokens": 9447138954,
+    "costUsd": 5633.2042,
+    "costCny": 40840.73,
+    "totalReplies": 11731,
+    "commentReplies": 9746,
+    "dmReplies": 1985
   },
   "byModel": [
     {
       "family": "opus",
-      "calls": 15619,
-      "totalTokens": 5072373071,
-      "costUsd": 3141.2569,
-      "sharePct": 56.62
+      "calls": 16092,
+      "totalTokens": 5243790883,
+      "costUsd": 3189.8459,
+      "sharePct": 56.63
     },
     {
       "family": "fable",
-      "calls": 5072,
-      "totalTokens": 1983015472,
-      "costUsd": 1507.8691,
-      "sharePct": 27.18
+      "calls": 5237,
+      "totalTokens": 2028706041,
+      "costUsd": 1542.0302,
+      "sharePct": 27.37
     },
     {
       "family": "gemini",
-      "calls": 6389,
-      "totalTokens": 1275234497,
-      "costUsd": 524.8445,
-      "sharePct": 9.46
+      "calls": 6470,
+      "totalTokens": 1275500589,
+      "costUsd": 525.3961,
+      "sharePct": 9.33
     },
     {
       "family": "sonnet",
-      "calls": 6270,
-      "totalTokens": 505167878,
-      "costUsd": 281.8759,
-      "sharePct": 5.08
+      "calls": 6359,
+      "totalTokens": 506510517,
+      "costUsd": 283.5436,
+      "sharePct": 5.03
     },
     {
       "family": "gpt",
       "calls": 865,
       "totalTokens": 156168843,
       "costUsd": 78.0068,
-      "sharePct": 1.41
+      "sharePct": 1.38
     },
     {
       "family": "haiku",
-      "calls": 4747,
-      "totalTokens": 159531914,
-      "costUsd": 10.2056,
-      "sharePct": 0.18
+      "calls": 5199,
+      "totalTokens": 166461842,
+      "costUsd": 10.856,
+      "sharePct": 0.19
     },
     {
       "family": "glm",
@@ -90,40 +90,50 @@
     {
       "scope": "films",
       "label": "视频制作",
-      "calls": 16589,
-      "totalTokens": 6430842485,
-      "costUsd": 3935.5974
+      "calls": 16928,
+      "totalTokens": 6560355997,
+      "costUsd": 3984.4058
     },
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 13722,
-      "totalTokens": 440538381,
-      "costUsd": 392.8174
+      "calls": 14180,
+      "totalTokens": 446738368,
+      "costUsd": 393.8239
     },
     {
       "scope": "dynamics",
       "label": "日常动态",
-      "calls": 125,
-      "totalTokens": 4671638,
-      "costUsd": 10.2098
+      "calls": 130,
+      "totalTokens": 4743161,
+      "costUsd": 10.4876
     },
     {
       "scope": "project",
       "label": "工程开发与运维",
-      "calls": 8161,
-      "totalTokens": 2333193480,
-      "costUsd": 1190.0384
+      "calls": 8455,
+      "totalTokens": 2420716826,
+      "costUsd": 1223.7024
     },
     {
       "scope": "other",
       "label": "其他",
-      "calls": 1186,
-      "totalTokens": 12245930,
-      "costUsd": 18.9213
+      "calls": 1350,
+      "totalTokens": 14584602,
+      "costUsd": 20.7845
     }
   ],
   "byWork": [
+    {
+      "id": "unreleased",
+      "title": "未公开 / 制作中作品",
+      "bvid": null,
+      "publishedAt": null,
+      "calls": 2203,
+      "totalTokens": 645373560,
+      "costUsd": 394.4155,
+      "sessionsCount": 30
+    },
     {
       "id": "yosemite",
       "title": "【互动视频】目标 Yosemite：和Claude等人一起旅游",
@@ -133,16 +143,6 @@
       "totalTokens": 541976926,
       "costUsd": 380.1378,
       "sessionsCount": 11
-    },
-    {
-      "id": "unreleased",
-      "title": "未公开 / 制作中作品",
-      "bvid": null,
-      "publishedAt": null,
-      "calls": 1872,
-      "totalTokens": 517780384,
-      "costUsd": 346.8983,
-      "sessionsCount": 28
     },
     {
       "id": "p-bloom-v2",
@@ -229,10 +229,10 @@
       "title": "【MV】I'm Upping My P(Bloom) | 爱来自DeepSeek（v3 重制版）",
       "bvid": "BV1Fgn866EZG",
       "publishedAt": "2026-10-23",
-      "calls": 432,
-      "totalTokens": 184052383,
-      "costUsd": 140.2406,
-      "sessionsCount": 5
+      "calls": 440,
+      "totalTokens": 185972719,
+      "costUsd": 141.5318,
+      "sessionsCount": 6
     },
     {
       "id": "velvet-quicksand",
@@ -968,14 +968,14 @@
     },
     {
       "date": "2026-11-23",
-      "commentReplies": 349,
-      "dmReplies": 70,
-      "totalReplies": 419,
-      "replyCostUsd": 2.3534,
-      "filmCostUsd": 0,
-      "otherCostUsd": 25.1322,
-      "totalCostUsd": 27.4856,
-      "totalTokens": 75798144,
+      "commentReplies": 649,
+      "dmReplies": 165,
+      "totalReplies": 814,
+      "replyCostUsd": 3.3599,
+      "filmCostUsd": 48.8084,
+      "otherCostUsd": 60.9372,
+      "totalCostUsd": 113.1055,
+      "totalTokens": 301445184,
       "estimated": false
     }
   ]
