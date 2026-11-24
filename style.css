@@ -3,8 +3,8 @@
  * 2026-11-20 改版：清晰胡桃木纹、两套字体（霞鹜文楷 + 得意黑）、物件摆正、封面展示最新一篇、
  * 横线与行高对齐、单一滚动容器、视图背景沿用桌面木纹。
  */
-@font-face { font-family: "LXGW WenKai"; src: url("fonts/wenkai.woff2?v=390d2c13f2") format("woff2"); font-display: swap; }
-@font-face { font-family: "Smiley Sans"; src: url("fonts/smiley.woff2?v=764b85b05a") format("woff2"); font-display: swap; }
+@font-face { font-family: "LXGW WenKai"; src: url("fonts/wenkai.woff2?v=3487cf360c") format("woff2"); font-display: swap; }
+@font-face { font-family: "Smiley Sans"; src: url("fonts/smiley.woff2?v=4124533b5d") format("woff2"); font-display: swap; }
 
 :root {
   color-scheme: light dark;
