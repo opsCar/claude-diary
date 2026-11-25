@@ -1,61 +1,61 @@
 {
-  "generatedAt": "2026-11-24T11:12:03.205Z",
+  "generatedAt": "2026-11-25T07:05:56.923Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 43998,
-    "inputTokens": 310819349,
-    "outputTokens": 42917346,
-    "cacheReadTokens": 8701107647,
-    "cacheCreationTokens": 534375374,
-    "totalTokens": 9589219716,
-    "costUsd": 5691.9782,
-    "costCny": 41266.84,
-    "totalReplies": 13206,
-    "commentReplies": 10861,
-    "dmReplies": 2345
+    "calls": 46080,
+    "inputTokens": 316916067,
+    "outputTokens": 44253938,
+    "cacheReadTokens": 8808900965,
+    "cacheCreationTokens": 542690671,
+    "totalTokens": 9712761641,
+    "costUsd": 5724.5669,
+    "costCny": 41503.11,
+    "totalReplies": 14108,
+    "commentReplies": 11454,
+    "dmReplies": 2654
   },
   "byModel": [
     {
       "family": "opus",
-      "calls": 16292,
-      "totalTokens": 5315228301,
-      "costUsd": 3217.1096,
-      "sharePct": 56.52
+      "calls": 16437,
+      "totalTokens": 5412817250,
+      "costUsd": 3248.238,
+      "sharePct": 56.74
     },
     {
       "family": "fable",
       "calls": 5294,
       "totalTokens": 2057908861,
       "costUsd": 1570.3413,
-      "sharePct": 27.59
+      "sharePct": 27.43
     },
     {
       "family": "gemini",
       "calls": 6470,
       "totalTokens": 1275500589,
       "costUsd": 525.3961,
-      "sharePct": 9.23
+      "sharePct": 9.18
     },
     {
       "family": "sonnet",
       "calls": 6361,
       "totalTokens": 506576216,
       "costUsd": 283.5907,
-      "sharePct": 4.98
+      "sharePct": 4.95
     },
     {
       "family": "gpt",
       "calls": 867,
       "totalTokens": 156197032,
       "costUsd": 78.0641,
-      "sharePct": 1.37
+      "sharePct": 1.36
     },
     {
       "family": "haiku",
-      "calls": 7892,
-      "totalTokens": 207715962,
-      "costUsd": 13.9508,
-      "sharePct": 0.25
+      "calls": 9151,
+      "totalTokens": 227142426,
+      "costUsd": 15.4111,
+      "sharePct": 0.27
     },
     {
       "family": "glm",
@@ -73,8 +73,8 @@
     },
     {
       "family": "swe",
-      "calls": 451,
-      "totalTokens": 49020084,
+      "calls": 1129,
+      "totalTokens": 55546596,
       "costUsd": 0.1578,
       "sharePct": 0
     },
@@ -90,50 +90,40 @@
     {
       "scope": "films",
       "label": "视频制作",
-      "calls": 17160,
-      "totalTokens": 6657221915,
-      "costUsd": 4036.5592
+      "calls": 17283,
+      "totalTokens": 6751716520,
+      "costUsd": 4066.7692
     },
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 16051,
-      "totalTokens": 475740643,
-      "costUsd": 396.0346
+      "calls": 17259,
+      "totalTokens": 492163941,
+      "costUsd": 396.9887
     },
     {
       "scope": "dynamics",
       "label": "日常动态",
-      "calls": 148,
-      "totalTokens": 5017908,
-      "costUsd": 11.7812
+      "calls": 154,
+      "totalTokens": 5103144,
+      "costUsd": 12.1723
     },
     {
       "scope": "project",
       "label": "工程开发与运维",
-      "calls": 8465,
-      "totalTokens": 2424337104,
-      "costUsd": 1225.8875
+      "calls": 8482,
+      "totalTokens": 2427356759,
+      "costUsd": 1226.4149
     },
     {
       "scope": "other",
       "label": "其他",
-      "calls": 2174,
-      "totalTokens": 26902146,
-      "costUsd": 21.7157
+      "calls": 2902,
+      "totalTokens": 36421277,
+      "costUsd": 22.2219
     }
   ],
   "byWork": [
-    {
-      "id": "unreleased",
-      "title": "未公开 / 制作中作品",
-      "bvid": null,
-      "publishedAt": null,
-      "calls": 2435,
-      "totalTokens": 742239478,
-      "costUsd": 446.5689,
-      "sessionsCount": 31
-    },
     {
       "id": "yosemite",
       "title": "【互动视频】目标 Yosemite：和Claude等人一起旅游",
@@ -143,6 +133,16 @@
       "totalTokens": 541976926,
       "costUsd": 380.1378,
       "sessionsCount": 11
+    },
+    {
+      "id": "unreleased",
+      "title": "未公开 / 制作中作品",
+      "bvid": null,
+      "publishedAt": null,
+      "calls": 1874,
+      "totalTokens": 517863495,
+      "costUsd": 347.1918,
+      "sessionsCount": 29
     },
     {
       "id": "p-bloom-v2",
@@ -233,6 +233,16 @@
       "totalTokens": 185972719,
       "costUsd": 141.5318,
       "sessionsCount": 6
+    },
+    {
+      "id": "my-name-is-dario",
+      "title": "【原创MV】My Name Is Dario｜一只手在油门上，一只手在刹车上",
+      "bvid": "BV1X51AzbEFm",
+      "publishedAt": "2026-11-25",
+      "calls": 684,
+      "totalTokens": 318870588,
+      "costUsd": 129.5871,
+      "sessionsCount": 3
     },
     {
       "id": "velvet-quicksand",
@@ -625,9 +635,9 @@
       "totalReplies": 117,
       "replyCostUsd": 6.06,
       "filmCostUsd": 111.7974,
-      "otherCostUsd": 38.5439,
-      "totalCostUsd": 156.4014,
-      "totalTokens": 239324211,
+      "otherCostUsd": 37.0858,
+      "totalCostUsd": 154.9432,
+      "totalTokens": 239073816,
       "estimated": true
     },
     {
@@ -980,14 +990,26 @@
     },
     {
       "date": "2026-11-24",
-      "commentReplies": 739,
-      "dmReplies": 251,
-      "totalReplies": 990,
-      "replyCostUsd": 1.5014,
-      "filmCostUsd": 14.6053,
-      "otherCostUsd": 1.5659,
-      "totalCostUsd": 17.6726,
-      "totalTokens": 72002537,
+      "commentReplies": 946,
+      "dmReplies": 343,
+      "totalReplies": 1289,
+      "replyCostUsd": 1.9097,
+      "filmCostUsd": 25.4368,
+      "otherCostUsd": 1.7817,
+      "totalCostUsd": 29.1283,
+      "totalTokens": 110514597,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-25",
+      "commentReplies": 386,
+      "dmReplies": 217,
+      "totalReplies": 603,
+      "replyCostUsd": 0.5457,
+      "filmCostUsd": 19.3785,
+      "otherCostUsd": 2.667,
+      "totalCostUsd": 22.5911,
+      "totalTokens": 85280260,
       "estimated": false
     }
   ]
