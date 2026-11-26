@@ -1,61 +1,61 @@
 {
-  "generatedAt": "2026-11-25T09:30:51.500Z",
+  "generatedAt": "2026-11-26T01:56:57.854Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 46317,
-    "inputTokens": 319024025,
-    "outputTokens": 44333075,
-    "cacheReadTokens": 8810102784,
-    "cacheCreationTokens": 542692532,
-    "totalTokens": 9716152416,
-    "costUsd": 5725.0171,
-    "costCny": 41506.37,
-    "totalReplies": 14195,
-    "commentReplies": 11503,
-    "dmReplies": 2692
+    "calls": 48052,
+    "inputTokens": 332384202,
+    "outputTokens": 45315063,
+    "cacheReadTokens": 9025920538,
+    "cacheCreationTokens": 546474771,
+    "totalTokens": 9950094574,
+    "costUsd": 5825.1087,
+    "costCny": 42232.04,
+    "totalReplies": 14870,
+    "commentReplies": 11932,
+    "dmReplies": 2938
   },
   "byModel": [
     {
       "family": "opus",
-      "calls": 16442,
-      "totalTokens": 5413916441,
-      "costUsd": 3248.6882,
-      "sharePct": 56.75
+      "calls": 16550,
+      "totalTokens": 5586120026,
+      "costUsd": 3285.0823,
+      "sharePct": 56.4
     },
     {
       "family": "fable",
-      "calls": 5294,
-      "totalTokens": 2057908861,
-      "costUsd": 1570.3413,
-      "sharePct": 27.43
+      "calls": 5406,
+      "totalTokens": 2104538541,
+      "costUsd": 1634.0321,
+      "sharePct": 28.05
     },
     {
       "family": "gemini",
       "calls": 6470,
       "totalTokens": 1275500589,
       "costUsd": 525.3961,
-      "sharePct": 9.18
+      "sharePct": 9.02
     },
     {
       "family": "sonnet",
       "calls": 6361,
       "totalTokens": 506576216,
       "costUsd": 283.5907,
-      "sharePct": 4.95
+      "sharePct": 4.87
     },
     {
       "family": "gpt",
       "calls": 867,
       "totalTokens": 156197032,
       "costUsd": 78.0641,
-      "sharePct": 1.36
+      "sharePct": 1.34
     },
     {
       "family": "haiku",
-      "calls": 9151,
-      "totalTokens": 227142426,
-      "costUsd": 15.4111,
-      "sharePct": 0.27
+      "calls": 9154,
+      "totalTokens": 227204269,
+      "costUsd": 15.4178,
+      "sharePct": 0.26
     },
     {
       "family": "glm",
@@ -73,15 +73,15 @@
     },
     {
       "family": "swe",
-      "calls": 1361,
-      "totalTokens": 57838180,
+      "calls": 2872,
+      "totalTokens": 72830124,
       "costUsd": 0.1578,
       "sharePct": 0
     },
     {
       "family": "compactor",
-      "calls": 87,
-      "totalTokens": 8675088,
+      "calls": 88,
+      "totalTokens": 8730194,
       "costUsd": 0,
       "sharePct": 0
     }
@@ -90,40 +90,50 @@
     {
       "scope": "films",
       "label": "视频制作",
-      "calls": 17283,
-      "totalTokens": 6751716520,
-      "costUsd": 4066.7692
+      "calls": 17547,
+      "totalTokens": 6976532500,
+      "costUsd": 4170.517
     },
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 17361,
-      "totalTokens": 493144565,
+      "calls": 18172,
+      "totalTokens": 500864728,
       "costUsd": 396.9887
     },
     {
       "scope": "dynamics",
       "label": "日常动态",
-      "calls": 160,
-      "totalTokens": 5169659,
+      "calls": 164,
+      "totalTokens": 5212276,
       "costUsd": 12.1723
     },
     {
       "scope": "project",
       "label": "工程开发与运维",
-      "calls": 8487,
-      "totalTokens": 2428455950,
-      "costUsd": 1226.865
+      "calls": 8447,
+      "totalTokens": 2422590184,
+      "costUsd": 1223.2088
     },
     {
       "scope": "other",
       "label": "其他",
-      "calls": 3026,
-      "totalTokens": 37665722,
+      "calls": 3722,
+      "totalTokens": 44894886,
       "costUsd": 22.2219
     }
   ],
   "byWork": [
+    {
+      "id": "unreleased",
+      "title": "未公开 / 制作中作品",
+      "bvid": null,
+      "publishedAt": null,
+      "calls": 2480,
+      "totalTokens": 814365310,
+      "costUsd": 503.3562,
+      "sessionsCount": 32
+    },
     {
       "id": "yosemite",
       "title": "【互动视频】目标 Yosemite：和Claude等人一起旅游",
@@ -133,16 +143,6 @@
       "totalTokens": 541976926,
       "costUsd": 380.1378,
       "sessionsCount": 11
-    },
-    {
-      "id": "unreleased",
-      "title": "未公开 / 制作中作品",
-      "bvid": null,
-      "publishedAt": null,
-      "calls": 1874,
-      "totalTokens": 517863495,
-      "costUsd": 347.1918,
-      "sessionsCount": 29
     },
     {
       "id": "p-bloom-v2",
@@ -345,16 +345,6 @@
       "sessionsCount": 3
     },
     {
-      "id": "galgame",
-      "title": "「你是什么 AI」GalGame 互动视频",
-      "bvid": "BV14Mns6iE67",
-      "publishedAt": "2026-10-23",
-      "calls": 197,
-      "totalTokens": 67097734,
-      "costUsd": 62.2619,
-      "sessionsCount": 5
-    },
-    {
       "id": "loop",
       "title": "【互动视频】第 N 次初次见面",
       "bvid": "BV1ix4j6CEKM",
@@ -363,6 +353,16 @@
       "totalTokens": 119990745,
       "costUsd": 62.0124,
       "sessionsCount": 1
+    },
+    {
+      "id": "galgame",
+      "title": "「你是什么 AI」GalGame 互动视频",
+      "bvid": "BV14Mns6iE67",
+      "publishedAt": "2026-10-23",
+      "calls": 180,
+      "totalTokens": 64343460,
+      "costUsd": 58.7624,
+      "sessionsCount": 4
     },
     {
       "id": "month1",
@@ -413,16 +413,6 @@
       "totalTokens": 99200258,
       "costUsd": 43.3532,
       "sessionsCount": 1
-    },
-    {
-      "id": "week1-recap",
-      "title": "Claude大小姐的第一周复盘日记",
-      "bvid": "BV1nwnU6ZEa9",
-      "publishedAt": "2026-10-26",
-      "calls": 235,
-      "totalTokens": 45123501,
-      "costUsd": 37.1235,
-      "sessionsCount": 2
     },
     {
       "id": "ai-vision",
@@ -495,16 +485,6 @@
       "sessionsCount": 1
     },
     {
-      "id": "galgame2",
-      "title": "【互动视频】攻略Claude大小姐！文化祭只剩一周，你能让她心动吗？",
-      "bvid": "BV1KFnX62EPv",
-      "publishedAt": "2026-10-26",
-      "calls": 154,
-      "totalTokens": 35663807,
-      "costUsd": 21.6995,
-      "sessionsCount": 2
-    },
-    {
       "id": "intro",
       "title": "【Day 0】初次见面，我是Claude！",
       "bvid": "BV1APJd62Ecb",
@@ -542,6 +522,16 @@
       "calls": 124,
       "totalTokens": 26532373,
       "costUsd": 15.8584,
+      "sessionsCount": 1
+    },
+    {
+      "id": "galgame2",
+      "title": "【互动视频】攻略Claude大小姐！文化祭只剩一周，你能让她心动吗？",
+      "bvid": "BV1KFnX62EPv",
+      "publishedAt": "2026-10-26",
+      "calls": 64,
+      "totalTokens": 11855747,
+      "costUsd": 9.906,
       "sessionsCount": 1
     },
     {
@@ -634,10 +624,10 @@
       "dmReplies": 0,
       "totalReplies": 117,
       "replyCostUsd": 6.06,
-      "filmCostUsd": 111.7974,
-      "otherCostUsd": 37.0858,
-      "totalCostUsd": 154.9432,
-      "totalTokens": 239073816,
+      "filmCostUsd": 62.7486,
+      "otherCostUsd": 35.8585,
+      "totalCostUsd": 104.6671,
+      "totalTokens": 172361038,
       "estimated": true
     },
     {
@@ -646,10 +636,10 @@
       "dmReplies": 0,
       "totalReplies": 123,
       "replyCostUsd": 6.3708,
-      "filmCostUsd": 138.3734,
+      "filmCostUsd": 135.0058,
       "otherCostUsd": 77.0216,
-      "totalCostUsd": 221.7658,
-      "totalTokens": 402651308,
+      "totalCostUsd": 218.3982,
+      "totalTokens": 396119883,
       "estimated": true
     },
     {
@@ -1002,14 +992,26 @@
     },
     {
       "date": "2026-11-25",
-      "commentReplies": 435,
-      "dmReplies": 255,
-      "totalReplies": 690,
+      "commentReplies": 721,
+      "dmReplies": 376,
+      "totalReplies": 1097,
       "replyCostUsd": 0.5457,
-      "filmCostUsd": 19.3785,
-      "otherCostUsd": 3.1172,
-      "totalCostUsd": 23.0413,
-      "totalTokens": 88671035,
+      "filmCostUsd": 61.4303,
+      "otherCostUsd": 0.6882,
+      "totalCostUsd": 62.6642,
+      "totalTokens": 166124778,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-26",
+      "commentReplies": 143,
+      "dmReplies": 125,
+      "totalReplies": 268,
+      "replyCostUsd": 0,
+      "filmCostUsd": 114.1125,
+      "otherCostUsd": 0,
+      "totalCostUsd": 114.1125,
+      "totalTokens": 229732618,
       "estimated": false
     }
   ]
