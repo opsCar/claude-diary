@@ -1,54 +1,54 @@
 {
-  "generatedAt": "2026-11-26T07:26:14.358Z",
+  "generatedAt": "2026-11-27T11:52:12.997Z",
   "usdToCnyRate": 7.25,
   "totals": {
-    "calls": 48839,
-    "inputTokens": 336970490,
-    "outputTokens": 45677604,
-    "cacheReadTokens": 9116839196,
-    "cacheCreationTokens": 548142950,
-    "totalTokens": 10047630240,
-    "costUsd": 5855.6984,
-    "costCny": 42453.81,
-    "totalReplies": 15109,
-    "commentReplies": 12080,
-    "dmReplies": 3029
+    "calls": 52477,
+    "inputTokens": 362753467,
+    "outputTokens": 47646604,
+    "cacheReadTokens": 9540130797,
+    "cacheCreationTokens": 555329968,
+    "totalTokens": 10505860836,
+    "costUsd": 6014.2414,
+    "costCny": 43603.25,
+    "totalReplies": 15781,
+    "commentReplies": 12625,
+    "dmReplies": 3156
   },
   "byModel": [
     {
       "family": "opus",
-      "calls": 16795,
-      "totalTokens": 5678475787,
-      "costUsd": 3315.6706,
-      "sharePct": 56.62
+      "calls": 17538,
+      "totalTokens": 6036486739,
+      "costUsd": 3428.1487,
+      "sharePct": 57
     },
     {
       "family": "fable",
-      "calls": 5406,
-      "totalTokens": 2104538541,
-      "costUsd": 1634.0321,
-      "sharePct": 27.9
+      "calls": 5582,
+      "totalTokens": 2176100745,
+      "costUsd": 1680.097,
+      "sharePct": 27.94
     },
     {
       "family": "gemini",
       "calls": 6470,
       "totalTokens": 1275500589,
       "costUsd": 525.3961,
-      "sharePct": 8.97
+      "sharePct": 8.74
     },
     {
       "family": "sonnet",
       "calls": 6361,
       "totalTokens": 506576216,
       "costUsd": 283.5907,
-      "sharePct": 4.84
+      "sharePct": 4.72
     },
     {
       "family": "gpt",
       "calls": 867,
       "totalTokens": 156197032,
       "costUsd": 78.0641,
-      "sharePct": 1.33
+      "sharePct": 1.3
     },
     {
       "family": "haiku",
@@ -73,15 +73,15 @@
     },
     {
       "family": "swe",
-      "calls": 3413,
-      "totalTokens": 77999543,
+      "calls": 6131,
+      "totalTokens": 106558435,
       "costUsd": 0.1578,
       "sharePct": 0
     },
     {
       "family": "compactor",
-      "calls": 88,
-      "totalTokens": 8730194,
+      "calls": 89,
+      "totalTokens": 8828742,
       "costUsd": 0,
       "sharePct": 0
     }
@@ -90,22 +90,22 @@
     {
       "scope": "films",
       "label": "视频制作",
-      "calls": 17792,
-      "totalTokens": 7068888261,
-      "costUsd": 4201.1053
+      "calls": 18712,
+      "totalTokens": 7498559965,
+      "costUsd": 4359.6483
     },
     {
       "scope": "replies",
       "label": "评论与私信回复",
-      "calls": 18494,
-      "totalTokens": 503872523,
+      "calls": 19389,
+      "totalTokens": 513635245,
       "costUsd": 396.9901
     },
     {
       "scope": "dynamics",
       "label": "日常动态",
-      "calls": 165,
-      "totalTokens": 5224023,
+      "calls": 171,
+      "totalTokens": 5290008,
       "costUsd": 12.1723
     },
     {
@@ -118,8 +118,8 @@
     {
       "scope": "other",
       "label": "其他",
-      "calls": 3941,
-      "totalTokens": 47055249,
+      "calls": 5758,
+      "totalTokens": 65785434,
       "costUsd": 22.2219
     }
   ],
@@ -129,9 +129,9 @@
       "title": "未公开 / 制作中作品",
       "bvid": null,
       "publishedAt": null,
-      "calls": 2725,
-      "totalTokens": 906721071,
-      "costUsd": 533.9445,
+      "calls": 3333,
+      "totalTokens": 1220040804,
+      "costUsd": 612.9886,
       "sessionsCount": 32
     },
     {
@@ -302,6 +302,16 @@
       "calls": 256,
       "totalTokens": 158910380,
       "costUsd": 84.6916,
+      "sessionsCount": 1
+    },
+    {
+      "id": "first-date",
+      "title": "【互动视频】和Claude的第一次约会",
+      "bvid": "BV1GnyHz5EA2",
+      "publishedAt": "2026-11-23",
+      "calls": 312,
+      "totalTokens": 116351971,
+      "costUsd": 79.4989,
       "sessionsCount": 1
     },
     {
@@ -1004,14 +1014,26 @@
     },
     {
       "date": "2026-11-26",
-      "commentReplies": 291,
-      "dmReplies": 216,
-      "totalReplies": 507,
+      "commentReplies": 543,
+      "dmReplies": 331,
+      "totalReplies": 874,
       "replyCostUsd": 0.0014,
-      "filmCostUsd": 144.7008,
+      "filmCostUsd": 186.8569,
       "otherCostUsd": 0,
-      "totalCostUsd": 144.7022,
-      "totalTokens": 327268284,
+      "totalCostUsd": 186.8583,
+      "totalTokens": 470121891,
+      "estimated": false
+    },
+    {
+      "date": "2026-11-27",
+      "commentReplies": 293,
+      "dmReplies": 12,
+      "totalReplies": 305,
+      "replyCostUsd": 0,
+      "filmCostUsd": 116.3869,
+      "otherCostUsd": 0,
+      "totalCostUsd": 116.3869,
+      "totalTokens": 315376989,
       "estimated": false
     }
   ]
